@@ -32,8 +32,15 @@ Dernière mise à jour : 2026-09-17
   (ajout/suppression de `Person`), section préférences encore en placeholder — PR #16
 - Interface visuelle appliquée sur l'ensemble de l'app (voir section « Design /
   interface » ci-dessous) — PR #5, #6, #7, #8/#14, #9/#12, #10/#13, #11/#16
-- Moteur de suggestion, liste de courses, planning : logique métier pas commencée
-  (interfaces posées en placeholder, voir ci-dessous)
+- Moteur de suggestion de recettes : `lib/suggestions/` (logique pure, aucune
+  dépendance à une route Next.js) note chaque recette du foyer à partir du taux de
+  couverture de ses `RecipeIngredient` par le `Stock` actuel (poids dominant), avec
+  bonus si un ingrédient utilisé périme bientôt et si la saison courante correspond
+  à `Recipe.seasons` (ou `TOUTE_ANNEE`). Page `/suggestions` : top recettes triées par
+  score avec badges de justification, filtre par tag qui boost le score au lieu de
+  filtrer en dur. Voir Risques et décisions ouvertes pour les poids retenus
+- Liste de courses, planning : logique métier pas commencée (interfaces posées en
+  placeholder, voir ci-dessous)
 
 ## Design / interface — état au 17/09/2026
 
@@ -99,7 +106,7 @@ ouvertes).
 1. CRUD ingrédients (fait, PR #1) et recettes (fait, PR #3)
 2. Gestion du stock (fait, PR #4) : ajout/ajustement/retrait, péremption
    courte/moyenne/longue
-3. Moteur de suggestion de recettes (stock + saison + tags de préférence)
+3. Moteur de suggestion de recettes (fait) : stock + saison + tags de préférence
 4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
 5. Planning hebdo configurable (nombre de repas, batch cooking, priorité aux produits proches péremption)
 6. Commentaires et historique de réalisation par recette
@@ -148,6 +155,12 @@ ouvertes).
   par défaut dans `lib/stock/expiry.ts` faute de valeurs spécifiées au PRD — à revoir si
   elles s'avèrent trop génériques à l'usage, éventuellement par ingrédient plutôt que
   par seule durée de conservation
+- Suggestions : poids de score (couverture stock ×60, bonus péremption proche +25,
+  bonus saison +15, boost +10 par tag filtré sélectionné) et seuil « périme bientôt »
+  (5 jours, ou conservation courte quelle que soit la date) fixés par défaut dans
+  `lib/suggestions/score.ts` faute de valeurs spécifiées au PRD — de même pour le
+  découpage des saisons météo par mois dans `lib/suggestions/season.ts`. À affiner à
+  l'usage, comme les durées de péremption du stock ci-dessus
 - Git/PR empilées et squash merge : GitHub ne retargete pas automatiquement une PR
   dont la branche de base est supprimée après merge — il la ferme, et une PR fermée
   dont la base a disparu ne peut plus être rouverte ni retargetée (`gh pr edit --base`

@@ -187,6 +187,8 @@ model MealPlan {
   participants MealPlanPerson[]
   preferences  PersonPreference[]
   createdAt    DateTime           @default(now())
+
+  @@unique([householdId, date, mealType])
 }
 
 model MealPlanPerson {

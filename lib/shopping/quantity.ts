@@ -1,0 +1,43 @@
+export type QuantityLine = {
+  ingredientId: string;
+  unit: string;
+  quantity: number;
+};
+
+/**
+ * Additionne les besoins de plusieurs recettes puis soustrait le stock actuel,
+ * ingrédient par ingrédient et unité par unité. Aucune conversion d'unité :
+ * un besoin en "kg" et un stock en "g" pour le même ingrédient restent deux
+ * lignes distinctes (pas d'utilitaire de conversion dans l'app). Ne renvoie
+ * que les lignes dont la quantité résiduelle est strictement positive.
+ */
+export function computeResidualQuantities(needed: QuantityLine[], stock: QuantityLine[]): QuantityLine[] {
+  const keyOf = (ingredientId: string, unit: string) => `${ingredientId}::${unit}`;
+
+  const neededByKey = new Map<string, QuantityLine>();
+  for (const line of needed) {
+    const key = keyOf(line.ingredientId, line.unit);
+    const existing = neededByKey.get(key);
+    neededByKey.set(key, {
+      ingredientId: line.ingredientId,
+      unit: line.unit,
+      quantity: (existing?.quantity ?? 0) + line.quantity,
+    });
+  }
+
+  const stockByKey = new Map<string, number>();
+  for (const line of stock) {
+    const key = keyOf(line.ingredientId, line.unit);
+    stockByKey.set(key, (stockByKey.get(key) ?? 0) + line.quantity);
+  }
+
+  const result: QuantityLine[] = [];
+  for (const [key, line] of neededByKey) {
+    const inStock = stockByKey.get(key) ?? 0;
+    const residual = line.quantity - inStock;
+    if (residual > 0) {
+      result.push({ ingredientId: line.ingredientId, unit: line.unit, quantity: residual });
+    }
+  }
+  return result;
+}

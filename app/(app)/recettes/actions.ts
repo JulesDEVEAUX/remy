@@ -3,8 +3,15 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { markAsMadeToday } from '@/lib/recipes/history';
 import { parseRecipeFormData } from '@/lib/recipes/mapping';
-import { validateRecipeInput, type RecipeFieldErrors, type RecipeFormValues } from '@/lib/recipes/validation';
+import {
+  validateRecipeComment,
+  validateRecipeInput,
+  validatePersonalNote,
+  type RecipeFieldErrors,
+  type RecipeFormValues,
+} from '@/lib/recipes/validation';
 import { prisma } from '@/lib/prisma';
 
 export type RecipeActionState = { errors: RecipeFieldErrors; values: RecipeFormValues } | undefined;
@@ -102,4 +109,58 @@ export async function deleteRecipeAction(id: string) {
   await prisma.recipe.deleteMany({ where: { id, householdId: household.id } });
   revalidatePath('/recettes');
   redirect('/recettes');
+}
+
+export type CommentActionState = { error?: string; success?: boolean } | undefined;
+
+export async function addRecipeCommentAction(
+  recipeId: string,
+  _prevState: CommentActionState,
+  formData: FormData,
+): Promise<CommentActionState> {
+  const household = await getCurrentHousehold();
+  const recipe = await prisma.recipe.findFirst({ where: { id: recipeId, householdId: household.id }, select: { id: true } });
+  if (!recipe) {
+    redirect('/recettes');
+  }
+
+  const result = validateRecipeComment(String(formData.get('body') ?? ''));
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  await prisma.recipeComment.create({ data: { recipeId, body: result.body } });
+  revalidatePath(`/recettes/${recipeId}`);
+  return { success: true };
+}
+
+export type PersonalNoteActionState = { error?: string } | undefined;
+
+export async function updatePersonalNoteAction(
+  recipeId: string,
+  _prevState: PersonalNoteActionState,
+  formData: FormData,
+): Promise<PersonalNoteActionState> {
+  const household = await getCurrentHousehold();
+  const result = validatePersonalNote(String(formData.get('personalNote') ?? ''));
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  await prisma.recipe.updateMany({
+    where: { id: recipeId, householdId: household.id },
+    data: { personalNote: result.note },
+  });
+  revalidatePath(`/recettes/${recipeId}`);
+  return undefined;
+}
+
+export async function markRecipeMadeAction(recipeId: string) {
+  const household = await getCurrentHousehold();
+  await prisma.recipe.updateMany({
+    where: { id: recipeId, householdId: household.id },
+    data: markAsMadeToday(),
+  });
+  revalidatePath(`/recettes/${recipeId}`);
+  revalidatePath('/recettes');
 }

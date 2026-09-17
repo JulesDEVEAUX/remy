@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { validateRecipeInput, type RecipeFormValues } from '@/lib/recipes/validation';
+import {
+  validatePersonalNote,
+  validateRecipeComment,
+  validateRecipeInput,
+  type RecipeFormValues,
+} from '@/lib/recipes/validation';
 
 const validIngredientIds = new Set(['ing_1', 'ing_2']);
 
@@ -205,5 +210,41 @@ describe('validateRecipeInput', () => {
     if (result.ok) {
       expect(result.data.ingredients).toHaveLength(2);
     }
+  });
+});
+
+describe('validateRecipeComment', () => {
+  it('rejects an empty comment', () => {
+    expect(validateRecipeComment('   ')).toEqual({ ok: false, error: expect.any(String) });
+  });
+
+  it('trims a valid comment', () => {
+    expect(validateRecipeComment('  Un délice, à refaire.  ')).toEqual({
+      ok: true,
+      body: 'Un délice, à refaire.',
+    });
+  });
+
+  it('rejects a comment longer than 1000 characters', () => {
+    const result = validateRecipeComment('a'.repeat(1001));
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe('validatePersonalNote', () => {
+  it('accepts an empty note and normalizes it to null', () => {
+    expect(validatePersonalNote('   ')).toEqual({ ok: true, note: null });
+  });
+
+  it('trims a valid note', () => {
+    expect(validatePersonalNote('  Moins de cumin la prochaine fois.  ')).toEqual({
+      ok: true,
+      note: 'Moins de cumin la prochaine fois.',
+    });
+  });
+
+  it('rejects a note longer than 2000 characters', () => {
+    const result = validatePersonalNote('a'.repeat(2001));
+    expect(result.ok).toBe(false);
   });
 });

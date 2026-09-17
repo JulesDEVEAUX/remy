@@ -1,86 +1,123 @@
-'use client';
+import Link from 'next/link';
+import { Button, ICONS, Icon, IconButton, ListRow, PageHeader, Tag } from '@/components/ui';
+import { getCurrentHousehold } from '@/lib/household';
+import { addDays, formatDateParam, getCurrentWeekStart, getWeekDates, parseDateParam } from '@/lib/planning/dates';
+import { buildWeekSummary, groupSlotsByDay } from '@/lib/planning/mapping';
+import { detectMealsPerDay } from '@/lib/planning/slots';
+import { prisma } from '@/lib/prisma';
+import { configureWeekAction } from './actions';
+import { DaysView } from './DaysView';
+import { PlanningConfigForm } from './PlanningConfigForm';
 
-import { useRef, useState } from 'react';
-import clsx from 'clsx';
-import { EmptyState, ICONS, Icon, PageHeader, Tag } from '@/components/ui';
+type ViewMode = 'jours' | 'resume';
 
-type DemoMeal = { type: string; recipeName: string };
-type DemoDay = { label: string; meals: DemoMeal[] };
+export default async function PlanningPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ start?: string; view?: string; reconfigurer?: string }>;
+}) {
+  const { start, view, reconfigurer } = await searchParams;
+  const household = await getCurrentHousehold();
 
-// Démo statique : le planning réel (génération + persistance MealPlan) n'est
-// pas encore construit. Sert à caler le design de la vue swipeable par jour.
-const DEMO_DAYS: DemoDay[] = [
-  { label: 'Lundi', meals: [{ type: 'Déjeuner', recipeName: 'Curry de lentilles' }] },
-  { label: 'Mardi', meals: [] },
-  { label: 'Mercredi', meals: [{ type: 'Dîner', recipeName: 'Soupe de légumes' }] },
-  { label: 'Jeudi', meals: [] },
-  { label: 'Vendredi', meals: [] },
-  {
-    label: 'Samedi',
-    meals: [
-      { type: 'Déjeuner', recipeName: 'Poulet rôti' },
-      { type: 'Dîner', recipeName: 'Salade composée' },
-    ],
-  },
-  { label: 'Dimanche', meals: [] },
-];
+  const weekStart = parseDateParam(start) ?? getCurrentWeekStart();
+  const weekStartParam = formatDateParam(weekStart);
+  const weekDates = getWeekDates(weekStart);
 
-export default function PlanningPage() {
-  const [selected, setSelected] = useState(0);
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const mealPlans = await prisma.mealPlan.findMany({
+    where: { householdId: household.id, date: { gte: weekDates[0], lt: addDays(weekDates[6], 1) } },
+    include: { recipe: true },
+    orderBy: { date: 'asc' },
+  });
 
-  function goToDay(index: number) {
-    setSelected(index);
-    const panel = scrollerRef.current?.children[index] as HTMLElement | undefined;
-    panel?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  if (mealPlans.length === 0 || reconfigurer === '1') {
+    const detectedMealsPerDay = detectMealsPerDay(mealPlans.map((mealPlan) => mealPlan.mealType));
+    return (
+      <main className="p-6 pb-32">
+        <PageHeader
+          title="Planning"
+          backHref={mealPlans.length > 0 ? `/planning?start=${weekStartParam}` : undefined}
+        />
+        <p className="mb-6 font-sans text-[14px] text-clay-700">
+          Choisis la semaine à planifier et le nombre de repas par jour.
+        </p>
+        <PlanningConfigForm
+          action={configureWeekAction}
+          defaultValues={{ startDate: weekStartParam, mealsPerDay: String(detectedMealsPerDay ?? 2) }}
+          submitLabel={mealPlans.length > 0 ? 'Mettre à jour la semaine' : 'Générer la semaine'}
+        />
+      </main>
+    );
   }
+
+  const viewMode: ViewMode = view === 'resume' ? 'resume' : 'jours';
+  const days = groupSlotsByDay(weekDates, mealPlans);
+  const summaryRows = buildWeekSummary(weekDates, mealPlans);
+  const prevWeekParam = formatDateParam(addDays(weekStart, -7));
+  const nextWeekParam = formatDateParam(addDays(weekStart, 7));
 
   return (
     <main className="p-6 pb-32">
-      <PageHeader title="Planning" />
+      <PageHeader
+        title="Planning"
+        action={
+          <Link href={`/planning?start=${weekStartParam}&reconfigurer=1`}>
+            <IconButton aria-label="Reconfigurer la semaine">
+              <Icon name={ICONS.reglages} size={18} />
+            </IconButton>
+          </Link>
+        }
+      />
 
-      <div className="mb-6 flex gap-2 overflow-x-auto">
-        {DEMO_DAYS.map((day, index) => (
-          <button
-            key={day.label}
-            type="button"
-            onClick={() => goToDay(index)}
-            className={clsx(
-              'flex h-11 flex-none items-center justify-center rounded-full px-4 font-sans text-[13px] font-bold transition-colors',
-              index === selected ? 'bg-terracotta text-terracotta-100' : 'bg-sand text-clay-700',
-            )}
-          >
-            {day.label.slice(0, 3)}
-          </button>
-        ))}
+      <div className="mb-4 flex items-center justify-between">
+        <Link href={`/planning?start=${prevWeekParam}&view=${viewMode}`}>
+          <IconButton aria-label="Semaine précédente">
+            <Icon name="ChevronLeft" size={18} />
+          </IconButton>
+        </Link>
+        <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-clay-700">
+          Semaine du {weekDates[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+        </span>
+        <Link href={`/planning?start=${nextWeekParam}&view=${viewMode}`}>
+          <IconButton aria-label="Semaine suivante">
+            <Icon name="ChevronRight" size={18} />
+          </IconButton>
+        </Link>
       </div>
 
-      {/* Défilement horizontal avec scroll-snap CSS : effet « swipe » sans logique de geste JS. */}
-      <div ref={scrollerRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
-        {DEMO_DAYS.map((day) => (
-          <section key={day.label} className="w-full flex-none snap-center">
-            <h2 className="mb-3 font-display text-[20px] text-ink">{day.label}</h2>
-            {day.meals.length === 0 ? (
-              <EmptyState icon={ICONS.semaine} title="Rien de planifié." />
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                {day.meals.map((meal) => (
-                  <div
-                    key={meal.type}
-                    className="flex min-h-[46px] items-center gap-3 rounded-md bg-sand px-4"
-                  >
-                    <Icon name={ICONS.cuisine} size={18} className="text-terracotta-700" />
-                    <span className="font-sans text-[15px] font-semibold text-ink">{meal.recipeName}</span>
-                    <Tag tone="neutre" className="ml-auto">
-                      {meal.type}
-                    </Tag>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        ))}
+      <div className="mb-6 flex gap-2">
+        <Link href={`/planning?start=${weekStartParam}&view=jours`} className="flex-1">
+          <Button variant={viewMode === 'jours' ? 'primary' : 'secondary'} block>
+            Jours
+          </Button>
+        </Link>
+        <Link href={`/planning?start=${weekStartParam}&view=resume`} className="flex-1">
+          <Button variant={viewMode === 'resume' ? 'primary' : 'secondary'} block>
+            Résumé
+          </Button>
+        </Link>
       </div>
+
+      {viewMode === 'jours' ? (
+        <DaysView days={days} weekStartParam={weekStartParam} />
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {summaryRows.map((row) => (
+            <ListRow
+              key={row.id}
+              href={`/planning/${row.id}?start=${weekStartParam}`}
+              icon={ICONS.cuisine}
+              label={row.recipeName ?? 'Aucune recette'}
+              meta={`${row.dayLabel} · ${row.mealTypeLabel}`}
+              tag={
+                <>
+                  {row.isBatch && <Tag tone="stock">Batch</Tag>}
+                  {row.isEmpty && <Tag tone="alerte">À assigner</Tag>}
+                </>
+              }
+            />
+          ))}
+        </div>
+      )}
     </main>
   );
 }

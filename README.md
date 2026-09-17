@@ -16,17 +16,21 @@ Next.js (App Router) + Prisma + Supabase (Postgres/Auth/Storage) + Tailwind, mob
   premier accès)
 - CRUD ingrédients livré (`/ingredients`)
 - CRUD recettes livré (`/recettes`) : composition d'ingrédients existants (quantité + unité),
-  saisons, tags, temps de préparation, lien source
+  saisons, tags, temps de préparation, lien source, commentaires et historique de réalisation
 - Gestion du stock livrée (`/stock`) : ajout/ajustement/retrait scopés au foyer, toujours
   rattachés à un ingrédient existant, liste triée par urgence de péremption (date estimée
   automatiquement si non saisie)
+- Moteur de suggestion de recettes (`/suggestions`) : score par couverture de stock, saison,
+  péremption proche et tags de préférence
+- Planning hebdo (`/planning`) : configuration du nombre de repas/jour, vue par jour et vue
+  résumé, assignation d'une recette par créneau, batch cooking
+- Liste de courses (`/courses`) : générée automatiquement depuis les repas planifiés à venir
+  (stock actuel déduit), ajout manuel d'un item, coche persistée, groupée par rayon et par
+  source d'achat
 - Accueil (`/`) : résumé du foyer (stock qui périme bientôt, repas du jour), et
-  Paramètres (`/parametres`) : nom du foyer, gestion des membres
+  Paramètres (`/parametres`) : nom du foyer, gestion des membres, thème clair/sombre
 - Interface visuelle (« Plan de travail », voir `docs/identite-visuelle.md`) appliquée sur
-  toute l'app : navigation par onglets, tous les écrans ci-dessus habillés avec de vraies
-  données. Courses (`/courses`) et Planning (`/planning`) sont posés en interface seule
-  (jeu de données statique de démo), en attente de leur logique métier
-- Moteur de suggestion, génération de liste de courses, logique de planning : pas commencés
+  toute l'app, thème sombre inclus
 
 ## Développement
 

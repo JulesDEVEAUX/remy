@@ -119,3 +119,26 @@ segments · étape courante · bouton crème « Étape suivante ».
 - Pas de gris froid, pas d'angle vif, pas de hex en dur dans un composant.
 - Pas de deuxième bouton plein sur un écran.
 - Pas de badge chiffré inutile : un compteur n'existe que s'il déclenche une action.
+
+## 9. Thème sombre
+
+Activé par la classe `.dark` sur `<html>` (bascule dans Paramètres > Apparence,
+persistée en cookie). Aucune nouvelle couleur : le thème sombre réutilise les tokens
+déjà existants, en reprenant le motif du mode cuisine (fond encre, texte crème) et en
+l'étendant à toute l'app. Substitution systématique via les variantes `dark:` de
+Tailwind, à appliquer partout où un composant ou un écran pose une couleur de surface
+ou de texte neutre en dur :
+
+| Rôle | Clair | Sombre |
+| --- | --- | --- |
+| Fond de page | `cream` | `ink` |
+| Surface élevée (carte, ligne, champ) | `sand` | `clay-800` |
+| Survol/actif sur surface élevée | `clay-300` / `clay-400` | `clay-700` / `clay-600` |
+| Texte principal | `ink` | `cream` |
+| Texte secondaire/méta | `clay-600…800` | `clay-300…400` |
+| Bordure/filet discret | `ink/10…35` | `cream/10…25` |
+| Icône ou texte d'accent terracotta sur surface neutre | `terracotta-700` | `terracotta-300` |
+
+Les couleurs d'accent (terracotta, sauge, argile) ne changent pas entre les deux thèmes
+— elles sont déjà lisibles sur fond clair comme sur fond sombre, comme le prouve leur
+usage existant en mode cuisine. Ne pas leur ajouter de variante `dark:`.

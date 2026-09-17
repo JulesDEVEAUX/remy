@@ -1,7 +1,7 @@
 # Contexte produit — Remy (app courses & recettes)
 
 Repo : https://github.com/JulesDEVEAUX/remy
-Dernière mise à jour : 2026-09-17
+Dernière mise à jour : 2026-09-18
 
 ## État du setup au 17/09/2026
 
@@ -66,6 +66,46 @@ Dernière mise à jour : 2026-09-17
   commentaires) intégrés depuis leurs branches respectives sur
   `integration/tier1-mvp` le 17/09/2026, PR ouverte vers `main` — voir Risques
   et décisions ouvertes pour le détail de l'intégration
+
+## Corrections issues GitHub (label `bug`) — 18/09/2026
+
+Six issues `bug` ouvertes traitées par lot via le skill `fix-issues` (une branche + une PR
+par issue, mergées sur `main` après revue) :
+
+- **Thème sombre** (#36, PR #43) : bascule Clair/Sombre dans Paramètres > Apparence,
+  persistée par cookie, appliquée côté serveur sur `<html>` (pas de flash). Le thème
+  sombre réutilise exclusivement les tokens existants (`ink`/`cream`/`clay-*`,
+  `terracotta-300/400`) déjà utilisés pour le motif « mode cuisine » — aucune nouvelle
+  valeur de couleur introduite, faute de direction dark définie dans
+  `docs/identite-visuelle.md`. À valider visuellement par un futur passage design
+- **Lenteur de chargement** (#35, PR #45) : `getCurrentHousehold()` (appelée sur
+  *chaque* page et *chaque* server action) faisait un `upsert` — donc une écriture DB —
+  à chaque requête ; lit désormais d'abord par `ownerUserId` (index unique) et ne
+  retombe sur l'upsert que si le foyer n'existe pas encore. Ajout d'un `loading.tsx`
+  sur le groupe `(app)` (aucun n'existait avant, l'écran restait figé pendant la
+  résolution des données de la page suivante)
+- **Génération de la liste de courses** (#33, PR #47) : part maintenant de tous les
+  repas planifiés à venir (`MealPlan`) au lieu d'une sélection manuelle dans le
+  catalogue de recettes. `selectPlannedRecipeOccurrences` (`lib/shopping/mapping.ts`)
+  ne compte un batch cooking qu'une fois même s'il couvre plusieurs créneaux — voir
+  Risques et décisions ouvertes pour la limite connue
+- **Zoom involontaire iOS** (#32, PR #49) : les champs de formulaire (`FIELD` dans
+  `components/ui/FormField.tsx`) étaient à 15px, sous le seuil de 16px qui déclenche un
+  zoom automatique de Safari iOS au focus — passés à 16px. Pas de verrou
+  `user-scalable=no` (casserait l'accessibilité, WCAG 1.4.4)
+- **Barre d'onglets tronquée sur iPhone** (#26, PR #51) : `TabBar` empilait deux
+  classes ciblant `padding-bottom` sur le même élément (`safe-bottom` + `pb-5`) — une
+  seule s'appliquait réellement selon l'ordre de génération Tailwind. `safe-bottom`
+  garantit maintenant seule un plancher de `1.25rem`
+- **Navigation perdue lors d'un ajout** (#29, PR #53) : créer un ingrédient depuis le
+  flux d'ajout au stock (catalogue vide) ou une recette depuis les suggestions
+  renvoyait toujours vers `/ingredients`/`/recettes`, quel que soit le point de départ.
+  `/ingredients/nouveau` et `/recettes/nouveau` acceptent un `?redirectTo=<chemin>`,
+  revalidé côté serveur (`safeRedirectTarget`, `lib/navigation.ts`) pour éviter un open
+  redirect — réutilisable pour tout futur flux « créer X depuis Y »
+
+Les issues #31, #30, #28, #25 (relabellisées `enhancement` en cours de route) sont
+restées hors périmètre de ce lot — voir skill `fix-issues` mis à jour ci-dessous.
 
 ## Design / interface — état au 17/09/2026
 
@@ -161,6 +201,19 @@ ouvertes).
 - Auto-fix (Claude Code on the web, recherche preview) : surveille CI et les commentaires de review sur une PR, pousse des correctifs automatiquement
 - Nightly + fix par issue (`.github/workflows/nightly-regression.yml` + `claude-fix-issue.yml`) : suite e2e complète chaque nuit sur `main`, ouvre une issue labellisée `claude:fix` si échec, un agent corrige sur label
 - Gate de merge humain conservé en phase initiale ; automatisation prévue une fois le pipeline éprouvé (décision utilisateur du 17/09/2026)
+- Skill `fix-issues` (`.claude/commands/fix-issues.md`) élargi le 18/09/2026 : traite
+  désormais toutes les issues ouvertes tous labels confondus (plus seulement `bug`),
+  triées par priorité de label (`bug` > `enhancement` > autre/sans label), toujours en
+  excluant les régressions e2e auto-générées (détectées par la description du label,
+  pas seulement par le titre)
+- Travail agent en parallèle sur le même repo : plusieurs sessions Claude Code peuvent
+  opérer simultanément sur ce repo (ex. correction d'issues + stabilisation e2e le
+  18/09/2026). Le répertoire de travail principal est partagé entre sessions : changer
+  de branche dans ce répertoire pendant qu'une autre session y travaille lui « vole »
+  sa branche sous les pieds. Utiliser un `git worktree` dédié par session évite la
+  collision ; en cas de conflit malgré tout (deux sessions créant le même nouveau
+  fichier, ex. `tests/e2e/support/planning.ts` le 18/09/2026), résoudre en conservant
+  les deux apports plutôt qu'en écrasant l'un des deux
 
 ## Risques et décisions ouvertes
 
@@ -201,6 +254,13 @@ ouvertes).
   petit-déjeuner ; 4 → + collation). Portée de la règle de réutilisation batch cooking
   (une recette sur plusieurs créneaux nécessite `isBatch`) limitée à la semaine affichée,
   faute de portée précisée au PRD. À affiner à l'usage
+- Génération de liste de courses depuis le planning (18/09/2026, #33) : `MealPlan` n'a
+  pas d'identifiant de lot batch dédié — si la même recette est batch-cookée deux fois
+  séparément (deux lots distincts dans le temps), `selectPlannedRecipeOccurrences` ne
+  peut pas les distinguer d'un seul lot étendu et ne comptera qu'une occurrence au lieu
+  de deux. Documenté dans `tests/unit/shopping/mapping.test.ts`. Un `batchGroupId`
+  dédié réglerait ça si le cas se présente en usage réel, mais jugé hors scope tant que
+  ce n'est qu'une hypothèse
 - Intégration Tier 1 (17/09/2026) : les 4 branches suggestions/courses/planning/
   commentaires ont toutes mergé proprement (aucun conflit) sur `integration/tier1-mvp`
   car chacune avait déjà été créée depuis `main` (ou, pour planning, depuis la branche

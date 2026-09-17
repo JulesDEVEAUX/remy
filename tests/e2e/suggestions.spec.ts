@@ -40,7 +40,7 @@ test.describe('Suggestions de recettes', () => {
     await page.goto('/recettes/nouveau');
     await page.getByLabel('Nom').fill(coveredRecipeName);
     await page.getByLabel('Instructions').fill('Cuire les pâtes puis ajouter le beurre.');
-    const coveredIngredientSelect = page.getByLabel('Ingrédient');
+    const coveredIngredientSelect = page.getByRole('combobox', { name: 'Ingrédient' });
     await coveredIngredientSelect.selectOption({ label: coveredIngredientName });
     await page.getByLabel('Qté').fill('200');
     await page.getByLabel('Unité').fill('g');
@@ -51,7 +51,7 @@ test.describe('Suggestions de recettes', () => {
     await page.goto('/recettes/nouveau');
     await page.getByLabel('Nom').fill(uncoveredRecipeName);
     await page.getByLabel('Instructions').fill('Faire revenir le riz puis ajouter le safran.');
-    const uncoveredIngredientSelect = page.getByLabel('Ingrédient');
+    const uncoveredIngredientSelect = page.getByRole('combobox', { name: 'Ingrédient' });
     await uncoveredIngredientSelect.selectOption({ label: missingIngredientName });
     await page.getByLabel('Qté').fill('1');
     await page.getByLabel('Unité').fill('g');
@@ -59,7 +59,7 @@ test.describe('Suggestions de recettes', () => {
     await expect(page).toHaveURL(/\/recettes$/);
 
     await page.goto('/stock/nouveau');
-    await page.getByLabel('Ingrédient').selectOption({ label: coveredIngredientName });
+    await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: coveredIngredientName });
     await page.getByLabel('Quantité').fill('500');
     await page.getByLabel('Unité').fill('g');
     await page.getByRole('button', { name: 'Ajouter' }).click();

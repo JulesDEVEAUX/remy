@@ -40,7 +40,7 @@ test.describe('Liste de courses', () => {
     await page.getByLabel('Instructions').fill('Cuire le poulet puis lier la sauce avec la farine.');
     await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click();
 
-    const ingredientSelects = page.getByLabel('Ingrédient');
+    const ingredientSelects = page.getByRole('combobox', { name: 'Ingrédient' });
     const quantityInputs = page.getByLabel('Qté');
     const unitInputs = page.getByLabel('Unité');
 

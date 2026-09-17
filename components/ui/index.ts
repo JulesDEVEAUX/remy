@@ -8,4 +8,4 @@ export { RayonGroup } from './RayonGroup';
 export { PortionStepper } from './PortionStepper';
 export { TabBar } from './TabBar';
 export { ListRow } from './ListRow';
-export { TextField, SelectField } from './FormField';
+export { TextField, SelectField, TextareaField } from './FormField';

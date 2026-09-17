@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { Icon } from './Icon';
 
 const LABEL = 'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700';
@@ -47,6 +47,31 @@ export function SelectField({
           className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-terracotta-700"
         />
       </span>
+      {error && <span className={ERROR}>{error}</span>}
+    </label>
+  );
+}
+
+/** Champ multi-lignes : mêmes tokens que TextField, conteneur en rounded-lg (pas de pastille sur du texte long). */
+export function TextareaField({
+  label,
+  error,
+  className,
+  rows = 5,
+  ...rest
+}: { label: string; error?: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className={LABEL}>{label}</span>
+      <textarea
+        rows={rows}
+        {...rest}
+        className={clsx(
+          'rounded-lg bg-sand px-5 py-3 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta',
+          error && 'ring-2 ring-terracotta-600',
+          className,
+        )}
+      />
       {error && <span className={ERROR}>{error}</span>}
     </label>
   );

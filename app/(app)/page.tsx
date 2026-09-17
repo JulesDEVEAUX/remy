@@ -94,6 +94,7 @@ export default async function HomePage() {
           Accès rapides
         </h2>
         <div className="flex flex-col gap-1.5">
+          <ListRow href="/suggestions" icon={ICONS.cuisine} label="Voir les suggestions" />
           <ListRow href="/ingredients/nouveau" icon={ICONS.epicerie} label="Ajouter un ingrédient" />
           <ListRow href="/recettes/nouveau" icon={ICONS.cuisine} label="Ajouter une recette" />
           <ListRow href="/courses" icon={ICONS.courses} label="Liste de courses" />

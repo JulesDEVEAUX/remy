@@ -26,7 +26,9 @@ export function DaysView({ days, weekStartParam }: { days: DayViewModel[]; weekS
             onClick={() => goToDay(index)}
             className={clsx(
               'flex h-11 flex-none items-center justify-center rounded-full px-4 font-sans text-[13px] font-bold transition-colors',
-              index === selected ? 'bg-terracotta text-terracotta-100' : 'bg-sand text-clay-700',
+              index === selected
+                ? 'bg-terracotta text-terracotta-100'
+                : 'bg-sand text-clay-700 dark:bg-clay-800 dark:text-clay-400',
             )}
           >
             {day.dayLabel.slice(0, 3)}
@@ -37,9 +39,9 @@ export function DaysView({ days, weekStartParam }: { days: DayViewModel[]; weekS
       <div ref={scrollerRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
         {days.map((day) => (
           <section key={day.dateKey} className="w-full flex-none snap-center">
-            <h2 className="mb-3 flex items-baseline gap-2 font-display text-[20px] text-ink">
+            <h2 className="mb-3 flex items-baseline gap-2 font-display text-[20px] text-ink dark:text-cream">
               {day.dayLabel}
-              <span className="font-mono text-[12px] font-normal text-clay-600">{day.dateLabel}</span>
+              <span className="font-mono text-[12px] font-normal text-clay-600 dark:text-clay-400">{day.dateLabel}</span>
             </h2>
             {day.slots.length === 0 ? (
               <EmptyState icon={ICONS.semaine} title="Aucun créneau configuré ce jour." />

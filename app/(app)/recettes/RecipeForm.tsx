@@ -96,7 +96,7 @@ export function RecipeForm({
       />
 
       <div className="flex flex-col gap-1.5">
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">Saisons</span>
+        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">Saisons</span>
         <div className="flex flex-wrap gap-2">
           {SEASON_OPTIONS.map((option) => (
             <label key={option.value} className="cursor-pointer">
@@ -128,7 +128,7 @@ export function RecipeForm({
       />
 
       <div className="flex flex-col gap-2">
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
           Ingrédients
         </span>
         {errors?.ingredients && (
@@ -136,7 +136,7 @@ export function RecipeForm({
         )}
 
         {ingredientOptions.length === 0 ? (
-          <p className="font-sans text-[13px] text-clay-700">
+          <p className="font-sans text-[13px] text-clay-700 dark:text-clay-400">
             Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord.
           </p>
         ) : (

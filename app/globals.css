@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Thème sombre activé par la classe .dark sur <html> (bascule dans Paramètres > Préférences) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Tokens de l'identité visuelle « Plan de travail » — voir docs/identite-visuelle.md */
 @theme {
   --color-cream: #f5ead8;
@@ -61,7 +64,7 @@
 
 @layer base {
   body {
-    @apply bg-cream text-ink font-sans;
+    @apply bg-cream text-ink font-sans dark:bg-ink dark:text-cream;
   }
 }
 

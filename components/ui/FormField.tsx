@@ -2,10 +2,10 @@ import clsx from 'clsx';
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { Icon } from './Icon';
 
-export const LABEL = 'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700';
+export const LABEL = 'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400';
 export const FIELD =
-  'min-h-[48px] rounded-full bg-sand px-5 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta';
-export const ERROR = 'px-2 font-sans text-[12px] font-medium text-terracotta-700';
+  'min-h-[48px] rounded-full bg-sand px-5 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta dark:bg-clay-800 dark:text-cream';
+export const ERROR = 'px-2 font-sans text-[12px] font-medium text-terracotta-700 dark:text-terracotta-300';
 
 /** Champ texte pastille : libellé technique mono, saisie en Figtree. */
 export function TextField({
@@ -44,7 +44,7 @@ export function SelectField({
         <Icon
           name="ChevronDown"
           size={18}
-          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-terracotta-700"
+          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-terracotta-700 dark:text-terracotta-300"
         />
       </span>
       {error && <span className={ERROR}>{error}</span>}
@@ -67,7 +67,7 @@ export function TextareaField({
         rows={rows}
         {...rest}
         className={clsx(
-          'rounded-lg bg-sand px-5 py-3 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta',
+          'rounded-lg bg-sand px-5 py-3 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta dark:bg-clay-800 dark:text-cream',
           error && 'ring-2 ring-terracotta-600',
           className,
         )}

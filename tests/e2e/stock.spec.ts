@@ -62,7 +62,11 @@ test.describe('Gestion du stock', () => {
     await page.getByRole('button', { name: 'Enregistrer' }).click();
 
     await expect(page).toHaveURL(/\/stock$/);
-    await expect(page.getByText('6 pot', { exact: true })).toBeVisible();
+    // Scopé à la ligne de soonName : "6 pot" seul peut matcher un reliquat d'un run
+    // précédent sur ce household stable (projet Supabase réel, pas de reset entre runs).
+    await expect(
+      page.getByRole('link', { name: new RegExp(soonName) }).getByText('6 pot', { exact: true }),
+    ).toBeVisible();
 
     await page.getByText(soonName, { exact: true }).click();
     await expect(page).toHaveURL(/\/stock\/.+/);

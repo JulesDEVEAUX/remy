@@ -61,7 +61,8 @@ test.describe('CRUD recettes', () => {
     await page.getByText(recipeName, { exact: true }).click();
     await expect(page).toHaveURL(/\/recettes\/.+/);
     await page.getByLabel('Nom').fill(updatedRecipeName);
-    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    // exact: true car la page recette affiche aussi "Enregistrer la note" (commentaires).
+    await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
 
     await expect(page).toHaveURL(/\/recettes$/);
     await expect(page.getByText(updatedRecipeName, { exact: true })).toBeVisible();

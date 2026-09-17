@@ -37,7 +37,7 @@ export default async function PlanningPage({
           title="Planning"
           backHref={mealPlans.length > 0 ? `/planning?start=${weekStartParam}` : undefined}
         />
-        <p className="mb-6 font-sans text-[14px] text-clay-700">
+        <p className="mb-6 font-sans text-[14px] text-clay-700 dark:text-clay-400">
           Choisis la semaine à planifier et le nombre de repas par jour.
         </p>
         <PlanningConfigForm
@@ -74,7 +74,7 @@ export default async function PlanningPage({
             <Icon name="ChevronLeft" size={18} />
           </IconButton>
         </Link>
-        <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-clay-700">
+        <span className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
           Semaine du {weekDates[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
         </span>
         <Link href={`/planning?start=${nextWeekParam}&view=${viewMode}`}>

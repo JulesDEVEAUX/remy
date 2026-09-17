@@ -19,15 +19,15 @@ export function ShoppingItemForm({
 
   if (ingredientOptions.length === 0) {
     return (
-      <p className="mb-8 font-sans text-[13px] text-clay-700">
+      <p className="mb-8 font-sans text-[13px] text-clay-700 dark:text-clay-400">
         Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord pour pouvoir compléter la liste.
       </p>
     );
   }
 
   return (
-    <form action={formAction} className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4">
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+    <form action={formAction} className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800">
+      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
         Ajouter un article
       </span>
       <SelectField

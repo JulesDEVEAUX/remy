@@ -17,7 +17,7 @@ export default async function NewStockPage() {
       <PageHeader title="Ajouter au stock" backHref="/stock" />
       {ingredients.length === 0 ? (
         <div className="flex flex-col gap-4">
-          <p className="font-sans text-[15px] text-clay-700">
+          <p className="font-sans text-[15px] text-clay-700 dark:text-clay-400">
             Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord.
           </p>
           <Link href="/ingredients/nouveau">

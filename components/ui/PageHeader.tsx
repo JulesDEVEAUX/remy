@@ -21,12 +21,12 @@ export function PageHeader({
         <Link
           href={backHref}
           aria-label="Retour"
-          className="flex size-11 flex-none items-center justify-center rounded-full bg-sand text-terracotta-700 transition-colors hover:bg-clay-300"
+          className="flex size-11 flex-none items-center justify-center rounded-full bg-sand text-terracotta-700 transition-colors hover:bg-clay-300 dark:bg-clay-800 dark:text-terracotta-300 dark:hover:bg-clay-700"
         >
           <Icon name="ChevronLeft" size={20} />
         </Link>
       )}
-      <h1 className="flex-1 truncate font-display text-[30px] leading-tight text-ink">{title}</h1>
+      <h1 className="flex-1 truncate font-display text-[30px] leading-tight text-ink dark:text-cream">{title}</h1>
       {action}
     </header>
   );

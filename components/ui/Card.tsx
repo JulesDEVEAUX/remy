@@ -14,7 +14,7 @@ export function Card({
   return (
     <div
       className={clsx(
-        'overflow-hidden rounded-lg bg-sand',
+        'overflow-hidden rounded-lg bg-sand dark:bg-clay-800',
         elevated && 'shadow-md',
         className,
       )}
@@ -26,7 +26,7 @@ export function Card({
 
 export function CardTitle({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <h3 className={clsx('font-display text-[20px] leading-[1.1] text-ink', className)}>
+    <h3 className={clsx('font-display text-[20px] leading-[1.1] text-ink dark:text-cream', className)}>
       {children}
     </h3>
   );
@@ -34,7 +34,7 @@ export function CardTitle({ children, className }: { children: ReactNode; classN
 
 export function CardMeta({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={clsx('flex gap-4 font-sans text-[12px] font-medium text-clay-700', className)}>
+    <div className={clsx('flex gap-4 font-sans text-[12px] font-medium text-clay-700 dark:text-clay-400', className)}>
       {children}
     </div>
   );
@@ -49,7 +49,7 @@ export function PhotoSlot({ label = 'PHOTO DU PLAT', className }: { label?: stri
         background: 'repeating-linear-gradient(135deg,#dcd3c4 0 9px,#d3c8b4 9px 18px)',
       }}
     >
-      <span className="font-mono text-[10px] tracking-wider text-clay-700">{label}</span>
+      <span className="font-mono text-[10px] tracking-wider text-clay-700 dark:text-clay-400">{label}</span>
     </div>
   );
 }

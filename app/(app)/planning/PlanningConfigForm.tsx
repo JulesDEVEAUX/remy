@@ -36,7 +36,7 @@ export function PlanningConfigForm({
       />
 
       <div className="flex flex-col gap-1.5">
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
           Repas par jour
         </span>
         <div className="flex flex-wrap gap-2">

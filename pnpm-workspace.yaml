@@ -1,0 +1,11 @@
+allowBuilds:
+  '@prisma/engines': true
+  prisma: true
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
+  - unrs-resolver
+  - esbuild
+  - msgpackr-extract

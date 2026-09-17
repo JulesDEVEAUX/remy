@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/* Tokens de l'identité visuelle « Plan de travail » — voir docs/identite-visuelle.md */
+@theme {
+  --color-cream: #f5ead8;
+  --color-sand: #ebddc5;
+  --color-ink: #201e1d;
+
+  --color-terracotta: #c67139;
+  --color-terracotta-100: #fff2eb;
+  --color-terracotta-200: #ffe1d0;
+  --color-terracotta-300: #ffc6a5;
+  --color-terracotta-400: #f6a06b;
+  --color-terracotta-500: #d67f48;
+  --color-terracotta-600: #b2622d;
+  --color-terracotta-700: #8c491a;
+  --color-terracotta-800: #643312;
+  --color-terracotta-900: #402310;
+
+  --color-sage: #7a8a5e;
+  --color-sage-100: #f0fae1;
+  --color-sage-200: #e1eecc;
+  --color-sage-300: #ccdbb2;
+  --color-sage-400: #aebf92;
+  --color-sage-500: #8fa073;
+  --color-sage-600: #728157;
+  --color-sage-700: #56633f;
+  --color-sage-800: #3d472b;
+  --color-sage-900: #272e1b;
+
+  --color-clay-100: #f9f4ed;
+  --color-clay-200: #eee7db;
+  --color-clay-300: #dcd3c4;
+  --color-clay-400: #c0b6a5;
+  --color-clay-500: #a19786;
+  --color-clay-600: #82796a;
+  --color-clay-700: #645c50;
+  --color-clay-800: #474238;
+  --color-clay-900: #2e2b25;
+
+  --font-display: var(--font-caprasimo), Georgia, serif;
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-xl: 44px;
+
+  --shadow-sm: 0 1px 2px rgb(46 43 37 / 0.14);
+  --shadow-md: 0 3px 10px rgb(46 43 37 / 0.16);
+  --shadow-lg: 0 12px 32px rgb(46 43 37 / 0.22);
+
+  --spacing-s1: 4.4px;
+  --spacing-s2: 8.8px;
+  --spacing-s3: 13.2px;
+  --spacing-s4: 17.6px;
+  --spacing-s6: 26.4px;
+  --spacing-s8: 35.2px;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-ink font-sans;
+  }
+}
+
+/* Respecte l'encoche/la barre système sur mobile (barre d'onglets, PWA standalone). */
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}

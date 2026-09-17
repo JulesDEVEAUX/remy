@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum IngredientCategory {
+  FRAIS
+  EPICERIE
+  MENAGER
+  BEAUTE
+  AUTRE
+}
+
+enum ConservationDuree {
+  COURTE
+  MOYENNE
+  LONGUE
+}
+
+enum SourceAchat {
+  CARREFOUR
+  MARCHE
+  AUTRE
+}
+
+enum Saison {
+  PRINTEMPS
+  ETE
+  AUTOMNE
+  HIVER
+  TOUTE_ANNEE
+}
+
+enum TypeRepas {
+  PETIT_DEJEUNER
+  DEJEUNER
+  DINER
+  COLLATION
+}
+
+model Household {
+  id                String             @id @default(cuid())
+  name              String
+  createdAt         DateTime           @default(now())
+  people            Person[]
+  recipes           Recipe[]
+  ingredients       Ingredient[]
+  stock             Stock[]
+  shoppingListItems ShoppingListItem[]
+  mealPlans         MealPlan[]
+}
+
+model Person {
+  id              String             @id @default(cuid())
+  householdId     String
+  household       Household          @relation(fields: [householdId], references: [id])
+  name            String
+  allergies       String[]
+  restrictions    String[]
+  preferences     PersonPreference[]
+  mealPlanPersons MealPlanPerson[]
+  createdAt       DateTime           @default(now())
+}
+
+// Envie du jour : peut changer d'une date/repas à l'autre pour une même personne
+model PersonPreference {
+  id         String    @id @default(cuid())
+  personId   String
+  person     Person    @relation(fields: [personId], references: [id])
+  date       DateTime
+  mealPlanId String?
+  mealPlan   MealPlan? @relation(fields: [mealPlanId], references: [id])
+  liked      Boolean
+  tag        String
+  comment    String?
+  createdAt  DateTime  @default(now())
+}
+
+model Ingredient {
+  id            String             @id @default(cuid())
+  householdId   String
+  household     Household          @relation(fields: [householdId], references: [id])
+  name          String
+  category      IngredientCategory
+  defaultUnit   String
+  conservation  ConservationDuree
+  defaultSource SourceAchat
+
+  // Nutrition : non prioritaire pour le MVP, champs nullable en attente (cf. PRD)
+  kcalPer100g    Float?
+  proteinPer100g Float?
+  carbsPer100g   Float?
+  fatPer100g     Float?
+  fiberPer100g   Float?
+
+  recipeIngredients RecipeIngredient[]
+  stock             Stock[]
+  shoppingListItems ShoppingListItem[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([householdId, name])
+}
+
+model Recipe {
+  id           String             @id @default(cuid())
+  householdId  String
+  household    Household          @relation(fields: [householdId], references: [id])
+  name         String
+  sourceUrl    String?
+  instructions String
+  prepMinutes  Int?
+  seasons      Saison[]
+  tags         String[]
+  personalNote String?
+  lastMadeAt   DateTime?
+  ingredients  RecipeIngredient[]
+  comments     RecipeComment[]
+  mealPlans    MealPlan[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+model RecipeIngredient {
+  id           String     @id @default(cuid())
+  recipeId     String
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  unit         String
+
+  @@unique([recipeId, ingredientId])
+}
+
+model RecipeComment {
+  id        String   @id @default(cuid())
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Stock {
+  id           String     @id @default(cuid())
+  householdId  String
+  household    Household  @relation(fields: [householdId], references: [id])
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  unit         String
+  expiresAt    DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model ShoppingListItem {
+  id           String      @id @default(cuid())
+  householdId  String
+  household    Household   @relation(fields: [householdId], references: [id])
+  ingredientId String
+  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  unit         String
+  source       SourceAchat
+  checked      Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+}
+
+model MealPlan {
+  id           String             @id @default(cuid())
+  householdId  String
+  household    Household          @relation(fields: [householdId], references: [id])
+  date         DateTime
+  mealType     TypeRepas
+  recipeId     String?
+  recipe       Recipe?            @relation(fields: [recipeId], references: [id])
+  isBatch      Boolean            @default(false)
+  participants MealPlanPerson[]
+  preferences  PersonPreference[]
+  createdAt    DateTime           @default(now())
+}
+
+model MealPlanPerson {
+  id         String   @id @default(cuid())
+  mealPlanId String
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  personId   String
+  person     Person   @relation(fields: [personId], references: [id])
+
+  @@unique([mealPlanId, personId])
+}

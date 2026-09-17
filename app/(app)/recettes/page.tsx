@@ -45,13 +45,14 @@ export default async function RecettesPage() {
         <div className="flex flex-col gap-1.5">
           {recipes.map((recipe) => {
             const viewModel = toRecipeViewModel(recipe);
+            const meta = [viewModel.prepMinutesLabel, viewModel.lastMadeLabel].filter(Boolean).join(' · ');
             return (
               <ListRow
                 key={viewModel.id}
                 href={`/recettes/${viewModel.id}`}
                 icon="ChefHat"
                 label={viewModel.name}
-                meta={viewModel.prepMinutesLabel ?? undefined}
+                meta={meta}
                 tag={viewModel.seasonLabels[0] ? <Tag tone="saison">{viewModel.seasonLabels[0]}</Tag> : undefined}
               />
             );

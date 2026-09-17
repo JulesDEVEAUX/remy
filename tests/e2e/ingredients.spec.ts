@@ -8,7 +8,9 @@ test.describe('CRUD ingrédients', () => {
   );
 
   test('créer, lister, éditer puis supprimer un ingrédient', async ({ page }) => {
-    await signInAsTestUser(page, `e2e-ingredients-${Date.now()}@remy.test`);
+    // Email stable et réutilisé à chaque run : évite d'accumuler un household
+    // orphelin par exécution nocturne sur le projet Supabase réel.
+    await signInAsTestUser(page, 'e2e-ingredients@remy.test');
 
     const name = `Farine test ${Date.now()}`;
     const updatedName = `${name} modifiee`;

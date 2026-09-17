@@ -27,22 +27,27 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Enable Corepack
+        run: corepack enable
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm prisma:deploy
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run e2e suite
         id: tests
         continue-on-error: true
         run: |
-          pnpm test:e2e -- --run 2>&1 | tee /tmp/e2e.log
+          pnpm test:e2e 2>&1 | tee /tmp/e2e.log
           exit ${PIPESTATUS[0]}
 
       - name: Ensure "bug" label exists

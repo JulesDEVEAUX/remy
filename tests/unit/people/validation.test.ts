@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { validateOnboardingInput, type OnboardingFormValues } from '@/lib/people/validation';
+import {
+  validateHouseholdName,
+  validateOnboardingInput,
+  validatePersonName,
+  type OnboardingFormValues,
+} from '@/lib/people/validation';
 
 const validValues: OnboardingFormValues = {
   householdName: 'Mon foyer',
@@ -76,5 +81,33 @@ describe('validateOnboardingInput', () => {
     if (!result.ok) {
       expect(Object.keys(result.errors).sort()).toEqual(['householdName', 'personNames'].sort());
     }
+  });
+});
+
+describe('validateHouseholdName', () => {
+  it('trims and accepts a valid name', () => {
+    expect(validateHouseholdName('  Mon foyer  ')).toEqual({ ok: true, data: 'Mon foyer' });
+  });
+
+  it('rejects an empty name', () => {
+    expect(validateHouseholdName('   ').ok).toBe(false);
+  });
+
+  it('rejects a name longer than 60 characters', () => {
+    expect(validateHouseholdName('a'.repeat(61)).ok).toBe(false);
+  });
+});
+
+describe('validatePersonName', () => {
+  it('trims and accepts a valid name', () => {
+    expect(validatePersonName('  Alex  ')).toEqual({ ok: true, data: 'Alex' });
+  });
+
+  it('rejects an empty name', () => {
+    expect(validatePersonName('   ').ok).toBe(false);
+  });
+
+  it('rejects a name longer than 40 characters', () => {
+    expect(validatePersonName('a'.repeat(41)).ok).toBe(false);
   });
 });

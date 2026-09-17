@@ -1,0 +1,60 @@
+name: Nightly Regression
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run e2e suite
+        id: tests
+        continue-on-error: true
+        run: |
+          pnpm test:e2e -- --run 2>&1 | tee /tmp/e2e.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Ensure "bug" label exists
+        if: steps.tests.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create bug --color d73a4a --description "Régression détectée automatiquement" --force
+
+      - name: Open issue on failure
+        if: steps.tests.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tail -c 60000 /tmp/e2e.log > /tmp/e2e-excerpt.log
+          {
+            echo "Les tests e2e nocturnes ont échoué sur \`main\` (run [$GITHUB_RUN_ID](${{ github.server_url }}/${{ github.repository }}/actions/runs/$GITHUB_RUN_ID))."
+            echo
+            echo "### Log (fin de sortie, tronqué à 60 Ko)"
+            echo '```'
+            cat /tmp/e2e-excerpt.log
+            echo '```'
+          } > /tmp/issue-body.md
+          gh issue create \
+            --title "Régression e2e nocturne — $(date -u +%Y-%m-%d)" \
+            --label bug \
+            --body-file /tmp/issue-body.md

@@ -17,11 +17,11 @@ Dernière mise à jour : 2026-09-17
   foyer — pas de création d'ingrédient à la volée depuis ce formulaire) — PR #3.
   Commentaires/historique de réalisation (point 6 du scope MVP) volontairement laissés
   hors scope de cette PR
-- Stock : CRUD complet développé (lister/ajouter/ajuster la quantité/retirer, scopé au
-  foyer, référence toujours un `Ingredient` existant du catalogue) — PR #4 ouverte, pas
-  encore mergée. Liste triée par urgence de péremption ; date de péremption estimée
-  automatiquement si non saisie, à partir de la durée de conservation de l'ingrédient
-  (voir Risques et décisions ouvertes pour les valeurs retenues)
+- Stock : CRUD complet livré et mergé sur `main` (lister/ajouter/ajuster la
+  quantité/retirer, scopé au foyer, référence toujours un `Ingredient` existant du
+  catalogue) — PR #4. Liste triée par urgence de péremption ; date de péremption
+  estimée automatiquement si non saisie, à partir de la durée de conservation de
+  l'ingrédient (voir Risques et décisions ouvertes pour les valeurs retenues)
 - Moteur de suggestion, liste de courses, planning : pas commencés
 
 ## Contexte et objectifs
@@ -64,8 +64,8 @@ ouvertes).
 ## Scope MVP (Tier 1) — ordre de build
 
 1. CRUD ingrédients (fait, PR #1) et recettes (fait, PR #3)
-2. Gestion du stock (développé, PR #4 en attente de merge) : ajout/ajustement/retrait,
-   péremption courte/moyenne/longue
+2. Gestion du stock (fait, PR #4) : ajout/ajustement/retrait, péremption
+   courte/moyenne/longue
 3. Moteur de suggestion de recettes (stock + saison + tags de préférence)
 4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
 5. Planning hebdo configurable (nombre de repas, batch cooking, priorité aux produits proches péremption)

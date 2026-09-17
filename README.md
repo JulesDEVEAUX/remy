@@ -1,2 +1,33 @@
 # remy
-Repo for my groceries shopping assistant
+
+Assistant personnel de courses & recettes : stock, recettes, planning des repas, liste de courses.
+
+Conventions de code, tests, revue et design : [CLAUDE.md](CLAUDE.md).
+Contexte produit, scope MVP et décisions : [docs/CONTEXT.md](docs/CONTEXT.md).
+
+## Stack
+
+Next.js (App Router) + Prisma + Supabase (Postgres/Auth/Storage) + Tailwind, mobile-first, PWA.
+
+## État actuel
+
+- Authentification Supabase (lien magique par email) et CRUD ingrédients livrés (`/ingredients`)
+- Recettes, stock, moteur de suggestion, liste de courses, planning : pas commencés
+
+## Développement
+
+```bash
+corepack enable
+pnpm install
+cp .env.example .env   # renseigner les clés Supabase (voir commentaires du fichier)
+pnpm prisma:deploy
+pnpm dev
+```
+
+## Scripts
+
+- `pnpm dev` / `pnpm build` / `pnpm start`
+- `pnpm test` — tests unitaires (Vitest)
+- `pnpm test:e2e` — tests e2e (Playwright)
+- `pnpm lint` / `pnpm typecheck`
+- `pnpm prisma:migrate` / `pnpm prisma:deploy` / `pnpm prisma:generate`

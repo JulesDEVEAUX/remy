@@ -3,8 +3,11 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { Icon } from './Icon';
 
 export const LABEL = 'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400';
+// text-[16px] (pas 15px) : en dessous de 16px, iOS Safari zoome automatiquement la
+// page à la mise au focus d'un champ, et le zoom reste parfois accroché après
+// navigation — la barre d'onglets fixe sort alors de l'écran (cf. issue #32).
 export const FIELD =
-  'min-h-[48px] rounded-full bg-sand px-5 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta dark:bg-clay-800 dark:text-cream';
+  'min-h-[48px] rounded-full bg-sand px-5 font-sans text-[16px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta dark:bg-clay-800 dark:text-cream';
 export const ERROR = 'px-2 font-sans text-[12px] font-medium text-terracotta-700 dark:text-terracotta-300';
 
 /** Champ texte pastille : libellé technique mono, saisie en Figtree. */
@@ -67,7 +70,7 @@ export function TextareaField({
         rows={rows}
         {...rest}
         className={clsx(
-          'rounded-lg bg-sand px-5 py-3 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta dark:bg-clay-800 dark:text-cream',
+          'rounded-lg bg-sand px-5 py-3 font-sans text-[16px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta dark:bg-clay-800 dark:text-cream',
           error && 'ring-2 ring-terracotta-600',
           className,
         )}

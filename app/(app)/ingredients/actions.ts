@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
 import { parseIngredientFormData } from '@/lib/ingredients/mapping';
+import { safeRedirectTarget } from '@/lib/navigation';
 import { validateIngredientInput, type IngredientFormValues } from '@/lib/ingredients/validation';
 import { prisma } from '@/lib/prisma';
 
@@ -36,8 +37,9 @@ export async function createIngredientAction(
     throw error;
   }
 
+  const redirectTo = safeRedirectTarget(formData.get('redirectTo')?.toString(), '/ingredients');
   revalidatePath('/ingredients');
-  redirect('/ingredients');
+  redirect(redirectTo);
 }
 
 export async function updateIngredientAction(

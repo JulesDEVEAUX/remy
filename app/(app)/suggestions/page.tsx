@@ -73,7 +73,7 @@ export default async function SuggestionsPage({
           title="Aucune recette pour l'instant."
           description="Ajoute des recettes pour recevoir des suggestions."
           action={
-            <Link href="/recettes/nouveau">
+            <Link href="/recettes/nouveau?redirectTo=/suggestions">
               <Button variant="secondary">Ajouter une recette</Button>
             </Link>
           }

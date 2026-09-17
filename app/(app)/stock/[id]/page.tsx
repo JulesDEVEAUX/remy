@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Button } from '@/components/ui';
+import { Button, PageHeader } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { toDateInputValue } from '@/lib/stock/mapping';
 import { prisma } from '@/lib/prisma';
@@ -19,8 +19,8 @@ export default async function AdjustStockPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <main className="min-h-screen bg-cream p-6 pb-28">
-      <h1 className="mb-6 font-display text-[30px] text-ink">{stock.ingredient.name}</h1>
+    <main className="p-6 pb-32">
+      <PageHeader title={stock.ingredient.name} backHref="/stock" />
       <StockForm
         action={updateStockAction.bind(null, id)}
         submitLabel="Enregistrer"

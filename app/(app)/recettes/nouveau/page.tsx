@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { prisma } from '@/lib/prisma';
 import { createRecipeAction } from '../actions';
@@ -11,8 +12,8 @@ export default async function NewRecipePage() {
   });
 
   return (
-    <main className="min-h-screen bg-cream p-6 pb-28">
-      <h1 className="mb-6 font-display text-[30px] text-ink">Nouvelle recette</h1>
+    <main className="p-6 pb-32">
+      <PageHeader title="Nouvelle recette" backHref="/recettes" />
       <RecipeForm
         action={createRecipeAction}
         submitLabel="Ajouter"

@@ -11,13 +11,22 @@ Next.js (App Router) + Prisma + Supabase (Postgres/Auth/Storage) + Tailwind, mob
 
 ## État actuel
 
-- Authentification Supabase (lien magique par email) et CRUD ingrédients livrés (`/ingredients`)
+- Authentification Supabase (lien magique par email, `/login` et `/signup`) et onboarding
+  foyer (`/onboarding` : nom du foyer + premiers mangeurs, déclenché automatiquement au
+  premier accès)
+- CRUD ingrédients livré (`/ingredients`)
 - CRUD recettes livré (`/recettes`) : composition d'ingrédients existants (quantité + unité),
   saisons, tags, temps de préparation, lien source
 - Gestion du stock livrée (`/stock`) : ajout/ajustement/retrait scopés au foyer, toujours
   rattachés à un ingrédient existant, liste triée par urgence de péremption (date estimée
   automatiquement si non saisie)
-- Moteur de suggestion, liste de courses, planning : pas commencés
+- Accueil (`/`) : résumé du foyer (stock qui périme bientôt, repas du jour), et
+  Paramètres (`/parametres`) : nom du foyer, gestion des membres
+- Interface visuelle (« Plan de travail », voir `docs/identite-visuelle.md`) appliquée sur
+  toute l'app : navigation par onglets, tous les écrans ci-dessus habillés avec de vraies
+  données. Courses (`/courses`) et Planning (`/planning`) sont posés en interface seule
+  (jeu de données statique de démo), en attente de leur logique métier
+- Moteur de suggestion, génération de liste de courses, logique de planning : pas commencés
 
 ## Développement
 

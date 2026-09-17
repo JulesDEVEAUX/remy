@@ -13,8 +13,8 @@ Règles opposables en review :
    composant est un bug.
 2. **Réutiliser `components/ui/`** (Button, Tag, Card, CheckRow, RayonGroup,
    PortionStepper, TabBar, Wordmark, Icon, ListRow, TextField, SelectField,
-   TextareaField) plutôt que restyler du HTML brut. Nouveau besoin transverse →
-   nouveau composant dans `components/ui/`.
+   TextareaField, PageHeader, EmptyState) plutôt que restyler du HTML brut.
+   Nouveau besoin transverse → nouveau composant dans `components/ui/`.
 3. **Icônes uniquement via `<Icon name="…" />`** (stroke 2.75 imposé). Pas
    d'import direct de `lucide-react` dans un écran.
 4. **Sémantique couleur** : terracotta = action/urgence · sauge = stock et

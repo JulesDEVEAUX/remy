@@ -9,7 +9,9 @@ Dernière mise à jour : 2026-09-17
 - Projet Supabase connecté (Postgres via Prisma ; Auth par lien magique en place)
 - Authentification : aucune n'existait avant le CRUD ingrédients ; ajoutée à cette
   occasion (lien magique par email, pas de mot de passe) car le scoping par foyer en
-  avait besoin — voir Risques et décisions ouvertes
+  avait besoin — voir Risques et décisions ouvertes. `/login` et `/signup` coexistent
+  désormais (même formulaire, même logique Supabase — `signInWithOtp` crée le compte
+  au besoin), avec lien croisé entre les deux — PR #6
 - Ingrédients : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
   scopé au foyer de l'utilisateur connecté) — PR #1
 - Recettes : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
@@ -22,7 +24,38 @@ Dernière mise à jour : 2026-09-17
   catalogue) — PR #4. Liste triée par urgence de péremption ; date de péremption
   estimée automatiquement si non saisie, à partir de la durée de conservation de
   l'ingrédient (voir Risques et décisions ouvertes pour les valeurs retenues)
-- Moteur de suggestion, liste de courses, planning : pas commencés
+- Onboarding foyer : `/onboarding` (nom du foyer + ajout des premiers `Person`)
+  déclenché automatiquement depuis `app/auth/confirm/route.ts` quand le foyer résolu
+  n'a encore aucun `Person` — PR #7. `Person` est donc réellement peuplé désormais,
+  plus seulement un modèle Prisma en attente
+- Paramètres (`/parametres`) : nom du foyer éditable, gestion des membres
+  (ajout/suppression de `Person`), section préférences encore en placeholder — PR #16
+- Interface visuelle appliquée sur l'ensemble de l'app (voir section « Design /
+  interface » ci-dessous) — PR #5, #6, #7, #8/#14, #9/#12, #10/#13, #11/#16
+- Moteur de suggestion, liste de courses, planning : logique métier pas commencée
+  (interfaces posées en placeholder, voir ci-dessous)
+
+## Design / interface — état au 17/09/2026
+
+Le système de design « Plan de travail » (`docs/identite-visuelle.md`) est appliqué
+sur l'ensemble de l'app, en parallèle du développement fonctionnel. Découpé en 7 PR
+mergées sur `main` (voir aussi `CLAUDE.md`, section Design / UI, pour les règles
+opposables en review) :
+
+- **Coquille** : groupe de routes `app/(app)` avec `TabBar` fixe (5 onglets — Accueil,
+  Recettes, Stock, Courses, Planning ; Ingrédients accessible depuis Recettes/Stock,
+  pas d'onglet dédié) ; nouveaux composants transverses `PageHeader` et `EmptyState`
+  dans `components/ui/`, ajoutés à la liste de la règle 2 de `CLAUDE.md`
+- **Écrans habillés avec de vraies données** : Accueil (résumé — stock qui périme
+  bientôt, repas du jour), Ingrédients, Recettes, Stock, Paramètres
+- **Écrans en placeholder design uniquement** (pas de logique métier, jeu de données
+  statique de démo) : Courses (RayonGroup + CheckRow, coche visuelle non persistée,
+  bouton « Copier pour Carrefour » désactivé) et Planning (sélecteur de jour +
+  scroll-snap CSS en guise de swipe, sans logique de geste JS) — en attente du dev
+  fonctionnel correspondant (points 3 à 5 du scope MVP)
+- **Changement de comportement notable** : `/` (Accueil) nécessite désormais une
+  session, alors que c'était un écran statique public avant — attendu pour un résumé
+  personnalisé au foyer
 
 ## Contexte et objectifs
 
@@ -115,11 +148,22 @@ ouvertes).
   par défaut dans `lib/stock/expiry.ts` faute de valeurs spécifiées au PRD — à revoir si
   elles s'avèrent trop génériques à l'usage, éventuellement par ingrédient plutôt que
   par seule durée de conservation
+- Git/PR empilées et squash merge : GitHub ne retargete pas automatiquement une PR
+  dont la branche de base est supprimée après merge — il la ferme, et une PR fermée
+  dont la base a disparu ne peut plus être rouverte ni retargetée (`gh pr edit --base`
+  échoue). Rencontré lors du merge des 7 PR du découpage design (17/09/2026) : les PR
+  empilées sur une branche de base déjà supprimée ont dû être recréées, rebasées sur
+  `main` (git élimine alors automatiquement les commits déjà appliqués via le squash)
+  puis re-mergées. À anticiper pour tout futur découpage en PR empilées : soit éviter
+  de supprimer une branche de base tant que ses PR dépendantes existent, soit rebaser
+  chaque PR dépendante sur `main` juste avant de la merger
 
 ## Fichiers de référence dans ce repo
 
 - `prisma/schema.prisma` — schéma de données canonique
-- `CLAUDE.md` — conventions de code, tests, revue
+- `CLAUDE.md` — conventions de code, tests, revue, design
+- `docs/identite-visuelle.md` — spec visuelle complète (marque, palette, type, icônes, écrans)
+- `components/ui/` — composants de design system partagés (voir `index.ts` pour la liste à jour)
 - `.github/workflows/ci.yml` — CI standard
 - `.github/workflows/nightly-regression.yml` — suite e2e nocturne + ouverture d'issue
 - `.github/workflows/claude-fix-issue.yml` — agent correcteur déclenché par label

@@ -51,3 +51,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 Référence visuelle : le fichier `Remy - Identité visuelle.dc.html` (projet de design)
 montre les trois écrans en situation — accueil, courses, mode cuisine.
+
+## Mise à jour post-handoff (17/09/2026)
+
+Ce paquet documente la livraison initiale du design system. Depuis, deux composants
+transverses ont été ajoutés directement dans le repo (pas dans ce paquet) au fil de
+l'application du design sur l'ensemble des écrans : `components/ui/PageHeader.tsx`
+et `components/ui/EmptyState.tsx`. État d'avancement complet de l'application du
+design à jour dans `docs/CONTEXT.md`, section « Design / interface ».

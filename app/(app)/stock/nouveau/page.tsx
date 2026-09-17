@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui';
+import { Button, PageHeader } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { prisma } from '@/lib/prisma';
 import { createStockAction } from '../actions';
@@ -13,8 +13,8 @@ export default async function NewStockPage() {
   });
 
   return (
-    <main className="min-h-screen bg-cream p-6 pb-28">
-      <h1 className="mb-6 font-display text-[30px] text-ink">Ajouter au stock</h1>
+    <main className="p-6 pb-32">
+      <PageHeader title="Ajouter au stock" backHref="/stock" />
       {ingredients.length === 0 ? (
         <div className="flex flex-col gap-4">
           <p className="font-sans text-[15px] text-clay-700">

@@ -8,8 +8,8 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'onInk';
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-terracotta text-terracotta-100 hover:bg-terracotta-600 active:bg-terracotta-700',
   secondary:
-    'border-[1.5px] border-terracotta text-terracotta-700 hover:bg-terracotta-200 active:bg-terracotta-300',
-  ghost: 'text-terracotta-700 hover:bg-terracotta-200 active:bg-terracotta-300',
+    'border-[1.5px] border-terracotta text-terracotta-700 hover:bg-terracotta-200 active:bg-terracotta-300 dark:text-terracotta-300',
+  ghost: 'text-terracotta-700 hover:bg-terracotta-200 active:bg-terracotta-300 dark:text-terracotta-300',
   onInk: 'bg-cream text-ink hover:bg-terracotta-200 active:bg-terracotta-300',
 };
 
@@ -54,7 +54,7 @@ export function IconButton({
       type="button"
       {...rest}
       className={clsx(
-        'inline-flex size-11 items-center justify-center rounded-full bg-sand text-terracotta-700 transition-colors hover:bg-clay-300 active:bg-clay-400',
+        'inline-flex size-11 items-center justify-center rounded-full bg-sand text-terracotta-700 transition-colors hover:bg-clay-300 active:bg-clay-400 dark:bg-clay-800 dark:text-terracotta-300 dark:hover:bg-clay-700 dark:active:bg-clay-600',
         className,
       )}
     >

@@ -29,10 +29,10 @@ export function StockForm({
     <form action={formAction} className="flex flex-col gap-4">
       {fixedIngredientName ? (
         <div className="flex flex-col gap-1.5">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
             Ingrédient
           </span>
-          <p className="font-sans text-[15px] font-semibold text-ink">{fixedIngredientName}</p>
+          <p className="font-sans text-[15px] font-semibold text-ink dark:text-cream">{fixedIngredientName}</p>
           <input type="hidden" name="ingredientId" value={values?.ingredientId} />
         </div>
       ) : (

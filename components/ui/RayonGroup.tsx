@@ -20,14 +20,14 @@ export function RayonGroup({
   return (
     <section>
       <header className="mb-2 flex items-center gap-2">
-        <span className="flex size-7 flex-none items-center justify-center rounded-full bg-sand text-terracotta-700">
+        <span className="flex size-7 flex-none items-center justify-center rounded-full bg-sand text-terracotta-700 dark:bg-clay-800 dark:text-terracotta-300">
           <Icon name={icon} size={16} />
         </span>
-        <h2 className="font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-clay-800">
+        <h2 className="font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-clay-800 dark:text-clay-300">
           {rayon}
         </h2>
-        <span className="h-px flex-1 bg-ink/15" />
-        {source && <span className="font-mono text-[11px] text-clay-600">{source}</span>}
+        <span className="h-px flex-1 bg-ink/15 dark:bg-cream/15" />
+        {source && <span className="font-mono text-[11px] text-clay-600 dark:text-clay-400">{source}</span>}
       </header>
       <div className="flex flex-col gap-1.5">{children}</div>
     </section>

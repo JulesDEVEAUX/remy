@@ -50,7 +50,7 @@ export default async function SuggestionsPage({
 
       {availableTags.length > 0 && (
         <div className="mb-6 flex flex-col gap-1.5">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
             Filtrer par tag
           </span>
           <div className="flex flex-wrap gap-2">

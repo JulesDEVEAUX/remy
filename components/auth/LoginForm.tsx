@@ -13,9 +13,9 @@ export function LoginForm({
   const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
-    <main className="flex min-h-screen flex-col justify-center gap-8 bg-cream p-8">
+    <main className="flex min-h-screen flex-col justify-center gap-8 bg-cream p-8 dark:bg-ink">
       <Wordmark size={32} />
-      <h1 className="-mt-4 font-display text-[30px] leading-tight text-ink">Connecte-toi</h1>
+      <h1 className="-mt-4 font-display text-[30px] leading-tight text-ink dark:text-cream">Connecte-toi</h1>
       <form action={formAction} className="flex flex-col gap-4">
         <TextField
           label="Adresse email"
@@ -38,7 +38,7 @@ export function LoginForm({
           {pending ? 'Connexion' : 'Se connecter'}
         </Button>
       </form>
-      <p className="text-center font-sans text-[13px] text-clay-700">
+      <p className="text-center font-sans text-[13px] text-clay-700 dark:text-clay-400">
         Pas encore de compte ?{' '}
         <Link href="/signup" className="font-semibold text-terracotta-700">
           Créer un compte

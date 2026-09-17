@@ -50,7 +50,7 @@ export function OnboardingForm({
       />
 
       <div className="flex flex-col gap-2">
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
           Qui mange à la maison ?
         </span>
         {errors?.personNames && (

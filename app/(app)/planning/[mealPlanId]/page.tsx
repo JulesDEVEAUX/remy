@@ -52,7 +52,7 @@ export default async function AssignSlotPage({
   return (
     <main className="p-6 pb-32">
       <PageHeader title={MEAL_TYPE_LABELS[target.mealType]} backHref={`/planning?start=${weekStartParam}`} />
-      <p className="mb-6 font-mono text-[12px] uppercase tracking-[0.08em] text-clay-700">
+      <p className="mb-6 font-mono text-[12px] uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
         {target.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}
       </p>
 

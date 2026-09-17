@@ -39,7 +39,7 @@ export default async function HomePage() {
       <header className="mb-6 flex items-center justify-between">
         <Wordmark size={28} />
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-600">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-600 dark:text-clay-400">
             {dateLabel}
           </span>
           <Link href="/parametres">
@@ -50,10 +50,10 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <h1 className="mb-8 font-display text-[30px] leading-[1.1] text-ink">Voici où tu en es.</h1>
+      <h1 className="mb-8 font-display text-[30px] leading-[1.1] text-ink dark:text-cream">Voici où tu en es.</h1>
 
       <section className="mb-6">
-        <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800">
+        <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800 dark:text-clay-300">
           Ça périme bientôt
         </h2>
         {soonExpiring.length === 0 ? (
@@ -83,7 +83,7 @@ export default async function HomePage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800">
+        <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800 dark:text-clay-300">
           Repas du jour
         </h2>
         {todayMeals.length === 0 ? (
@@ -119,7 +119,7 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800">
+        <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800 dark:text-clay-300">
           Accès rapides
         </h2>
         <div className="flex flex-col gap-1.5">

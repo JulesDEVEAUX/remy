@@ -1,9 +1,11 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { getCurrentHousehold } from '@/lib/household';
 import { validateHouseholdName, validatePersonName } from '@/lib/people/validation';
 import { prisma } from '@/lib/prisma';
+import { THEME_COOKIE, type Theme } from '@/lib/theme';
 
 export type UpdateHouseholdNameState = { error: string; value: string } | undefined;
 
@@ -43,4 +45,10 @@ export async function deletePersonAction(id: string) {
   const household = await getCurrentHousehold();
   await prisma.person.deleteMany({ where: { id, householdId: household.id } });
   revalidatePath('/parametres');
+}
+
+export async function setThemeAction(theme: Theme) {
+  const store = await cookies();
+  store.set(THEME_COOKIE, theme, { maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' });
+  revalidatePath('/', 'layout');
 }

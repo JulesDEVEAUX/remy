@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Button } from '@/components/ui';
+import { Button, PageHeader } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { prisma } from '@/lib/prisma';
 import { deleteIngredientAction, updateIngredientAction } from '../actions';
@@ -17,8 +17,8 @@ export default async function EditIngredientPage({ params }: { params: Promise<{
   }
 
   return (
-    <main className="min-h-screen bg-cream p-6 pb-28">
-      <h1 className="mb-6 font-display text-[30px] text-ink">{ingredient.name}</h1>
+    <main className="p-6 pb-32">
+      <PageHeader title={ingredient.name} backHref="/ingredients" />
       <IngredientForm
         action={updateIngredientAction.bind(null, id)}
         defaultValues={{

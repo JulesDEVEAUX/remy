@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Button, Icon, ListRow, RayonGroup, Tag } from '@/components/ui';
+import { Button, EmptyState, Icon, ICONS, ListRow, PageHeader, RayonGroup, Tag } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { toIngredientViewModel, type IngredientViewModel } from '@/lib/ingredients/mapping';
 import { prisma } from '@/lib/prisma';
@@ -20,18 +20,27 @@ export default async function IngredientsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream p-6 pb-28">
-      <header className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-[30px] text-ink">Ingrédients</h1>
-        <Link href="/ingredients/nouveau">
-          <Button icon={<Icon name="Plus" size={18} />}>Ajouter</Button>
-        </Link>
-      </header>
+    <main className="p-6 pb-32">
+      <PageHeader
+        title="Ingrédients"
+        action={
+          <Link href="/ingredients/nouveau">
+            <Button icon={<Icon name="Plus" size={18} />}>Ajouter</Button>
+          </Link>
+        }
+      />
 
       {ingredients.length === 0 ? (
-        <p className="font-sans text-[15px] text-clay-700">
-          Aucun ingrédient pour l&apos;instant. Ajoute le premier.
-        </p>
+        <EmptyState
+          icon={ICONS.epicerie}
+          title="Aucun ingrédient pour l'instant."
+          description="Le catalogue alimente les recettes et le stock."
+          action={
+            <Link href="/ingredients/nouveau">
+              <Button variant="secondary">Ajouter le premier</Button>
+            </Link>
+          }
+        />
       ) : (
         <div className="flex flex-col gap-6">
           {[...groups.entries()].map(([categoryLabel, items]) => (

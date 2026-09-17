@@ -17,7 +17,12 @@ Dernière mise à jour : 2026-09-17
   foyer — pas de création d'ingrédient à la volée depuis ce formulaire) — PR #3.
   Commentaires/historique de réalisation (point 6 du scope MVP) volontairement laissés
   hors scope de cette PR
-- Stock, moteur de suggestion, liste de courses, planning : pas commencés
+- Stock : CRUD complet développé (lister/ajouter/ajuster la quantité/retirer, scopé au
+  foyer, référence toujours un `Ingredient` existant du catalogue) — PR #4 ouverte, pas
+  encore mergée. Liste triée par urgence de péremption ; date de péremption estimée
+  automatiquement si non saisie, à partir de la durée de conservation de l'ingrédient
+  (voir Risques et décisions ouvertes pour les valeurs retenues)
+- Moteur de suggestion, liste de courses, planning : pas commencés
 
 ## Contexte et objectifs
 
@@ -59,7 +64,8 @@ ouvertes).
 ## Scope MVP (Tier 1) — ordre de build
 
 1. CRUD ingrédients (fait, PR #1) et recettes (fait, PR #3)
-2. Gestion du stock (ajout/retrait, péremption courte/moyenne/longue)
+2. Gestion du stock (développé, PR #4 en attente de merge) : ajout/ajustement/retrait,
+   péremption courte/moyenne/longue
 3. Moteur de suggestion de recettes (stock + saison + tags de préférence)
 4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
 5. Planning hebdo configurable (nombre de repas, batch cooking, priorité aux produits proches péremption)
@@ -104,6 +110,11 @@ ouvertes).
   succès avant le 17/09/2026 (conflit de version pnpm, navigateurs Playwright non
   installés, flag `--run` invalide pour Playwright) — corrigé au passage dans la PR #1,
   premier run vert confirmé le 17/09/2026
+- Stock : durées d'estimation de péremption (courte = 5 j, moyenne = 14 j, longue =
+  180 j, appliquées à la date d'ajout quand l'utilisateur ne saisit pas de date) fixées
+  par défaut dans `lib/stock/expiry.ts` faute de valeurs spécifiées au PRD — à revoir si
+  elles s'avèrent trop génériques à l'usage, éventuellement par ingrédient plutôt que
+  par seule durée de conservation
 
 ## Fichiers de référence dans ce repo
 

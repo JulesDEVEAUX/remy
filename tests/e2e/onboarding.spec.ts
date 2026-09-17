@@ -12,8 +12,8 @@ test.describe('Onboarding foyer', () => {
     page,
   }) => {
     // Email stable réutilisé à chaque run : on force le foyer à repartir sans
-    // aucun Person avant de se connecter, pour que /auth/confirm redirige
-    // vers /onboarding de façon reproductible.
+    // aucun Person avant de se connecter, pour que /login redirige vers
+    // /onboarding de façon reproductible.
     const email = 'e2e-onboarding@remy.test';
     const userId = await ensureTestUserId(email);
     await resetHouseholdPeople(userId);

@@ -17,7 +17,7 @@ export async function resetHouseholdPeople(ownerUserId: string | undefined) {
 }
 
 /**
- * Garantit qu'un foyer de test a au moins un Person, pour que /auth/confirm
+ * Garantit qu'un foyer de test a au moins un Person, pour que la connexion
  * ne redirige pas vers /onboarding sur des specs qui testent autre chose.
  */
 export async function ensureHouseholdHasPerson(ownerUserId: string | undefined) {

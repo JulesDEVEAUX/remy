@@ -1,5 +1,6 @@
-import { MagicLinkForm } from '@/components/auth/MagicLinkForm';
+import { SignupForm } from '@/components/auth/SignupForm';
+import { signupAction } from './actions';
 
 export default function SignupPage() {
-  return <MagicLinkForm mode="signup" />;
+  return <SignupForm action={signupAction} />;
 }

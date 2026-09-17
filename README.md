@@ -11,7 +11,7 @@ Next.js (App Router) + Prisma + Supabase (Postgres/Auth/Storage) + Tailwind, mob
 
 ## État actuel
 
-- Authentification Supabase (lien magique par email, `/login` et `/signup`) et onboarding
+- Authentification Supabase (email + code à 6 chiffres, `/login` et `/signup`) et onboarding
   foyer (`/onboarding` : nom du foyer + premiers mangeurs, déclenché automatiquement au
   premier accès)
 - CRUD ingrédients livré (`/ingredients`)

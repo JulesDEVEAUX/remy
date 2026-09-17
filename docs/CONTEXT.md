@@ -12,7 +12,12 @@ Dernière mise à jour : 2026-09-17
   avait besoin — voir Risques et décisions ouvertes
 - Ingrédients : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
   scopé au foyer de l'utilisateur connecté) — PR #1
-- Recettes, stock, moteur de suggestion, liste de courses, planning : pas commencés
+- Recettes : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
+  composition dynamique de `RecipeIngredient` à partir du catalogue d'ingrédients du
+  foyer — pas de création d'ingrédient à la volée depuis ce formulaire) — PR #3.
+  Commentaires/historique de réalisation (point 6 du scope MVP) volontairement laissés
+  hors scope de cette PR
+- Stock, moteur de suggestion, liste de courses, planning : pas commencés
 
 ## Contexte et objectifs
 
@@ -53,7 +58,7 @@ ouvertes).
 
 ## Scope MVP (Tier 1) — ordre de build
 
-1. CRUD ingrédients (fait, PR #1) et recettes (à faire)
+1. CRUD ingrédients (fait, PR #1) et recettes (fait, PR #3)
 2. Gestion du stock (ajout/retrait, péremption courte/moyenne/longue)
 3. Moteur de suggestion de recettes (stock + saison + tags de préférence)
 4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour

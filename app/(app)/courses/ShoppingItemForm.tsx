@@ -1,0 +1,80 @@
+'use client';
+
+import { useActionState } from 'react';
+import { Button, SelectField, TextField } from '@/components/ui';
+import type { ShoppingItemActionState } from './actions';
+
+type IngredientOption = { id: string; name: string };
+
+export function ShoppingItemForm({
+  action,
+  ingredientOptions,
+}: {
+  action: (state: ShoppingItemActionState, formData: FormData) => Promise<ShoppingItemActionState>;
+  ingredientOptions: IngredientOption[];
+}) {
+  const [state, formAction, pending] = useActionState(action, undefined);
+  const values = state?.values;
+  const errors = state?.errors;
+
+  if (ingredientOptions.length === 0) {
+    return (
+      <p className="mb-8 font-sans text-[13px] text-clay-700">
+        Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord pour pouvoir compléter la liste.
+      </p>
+    );
+  }
+
+  return (
+    <form action={formAction} className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4">
+      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700">
+        Ajouter un article
+      </span>
+      <SelectField
+        label="Ingrédient"
+        name="ingredientId"
+        required
+        defaultValue={values?.ingredientId ?? ''}
+        error={errors?.ingredientId}
+      >
+        <option value="" disabled>
+          Choisir…
+        </option>
+        {ingredientOptions.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.name}
+          </option>
+        ))}
+      </SelectField>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <TextField
+            label="Quantité"
+            name="quantity"
+            type="number"
+            min={0}
+            step="any"
+            required
+            defaultValue={values?.quantity}
+            error={errors?.quantity}
+            placeholder="500"
+          />
+        </div>
+        <div className="flex-1">
+          <TextField
+            label="Unité"
+            name="unit"
+            required
+            maxLength={20}
+            defaultValue={values?.unit}
+            error={errors?.unit}
+            placeholder="g, L, pièce…"
+          />
+        </div>
+      </div>
+      <Button type="submit" variant="secondary" block disabled={pending}>
+        {pending ? 'Ajout' : 'Ajouter'}
+      </Button>
+    </form>
+  );
+}

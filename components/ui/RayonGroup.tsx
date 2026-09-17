@@ -13,7 +13,8 @@ export function RayonGroup({
 }: {
   rayon: string;
   icon: IconName;
-  source: string;
+  /** Source d'achat alignée à droite dans l'en-tête (Carrefour / hors-Carrefour). Omise si non pertinente. */
+  source?: string;
   children: ReactNode;
 }) {
   return (
@@ -26,7 +27,7 @@ export function RayonGroup({
           {rayon}
         </h2>
         <span className="h-px flex-1 bg-ink/15" />
-        <span className="font-mono text-[11px] text-clay-600">{source}</span>
+        {source && <span className="font-mono text-[11px] text-clay-600">{source}</span>}
       </header>
       <div className="flex flex-col gap-1.5">{children}</div>
     </section>

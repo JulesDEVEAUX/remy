@@ -42,7 +42,12 @@ enum TypeRepas {
 }
 
 model Household {
-  id                String             @id @default(cuid())
+  id String @id @default(cuid())
+
+  // Id de l'utilisateur Supabase Auth (auth.users.id) propriétaire du foyer.
+  // Pas de FK Prisma : la table auth.users vit hors du schéma géré par Prisma.
+  ownerUserId String @unique
+
   name              String
   createdAt         DateTime           @default(now())
   people            Person[]

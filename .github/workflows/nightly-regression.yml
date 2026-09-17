@@ -12,6 +12,18 @@ jobs:
       contents: read
       issues: write
 
+    env:
+      # Requis par les parcours e2e qui touchent Supabase Auth (ex. CRUD ingrédients,
+      # scopé au foyer de l'utilisateur connecté) — secrets à définir dans les
+      # paramètres du repo GitHub. Sans eux, ces specs s'auto-skippent (voir
+      # tests/e2e/ingredients.spec.ts).
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+
     steps:
       - uses: actions/checkout@v6
 

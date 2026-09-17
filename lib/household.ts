@@ -18,6 +18,14 @@ export async function getCurrentHousehold() {
     redirect('/login');
   }
 
+  // Lecture d'abord : cette fonction est appelée à chaque navigation sur chaque écran,
+  // un upsert systématique forçait une écriture DB (upsert = INSERT ... ON CONFLICT)
+  // à chaque requête au lieu d'une simple lecture indexée dans le cas courant.
+  const existing = await prisma.household.findUnique({ where: { ownerUserId: user.id } });
+  if (existing) {
+    return existing;
+  }
+
   return prisma.household.upsert({
     where: { ownerUserId: user.id },
     update: {},

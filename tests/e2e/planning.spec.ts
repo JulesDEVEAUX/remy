@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { signInAsTestUser } from './support/auth';
+import { ensureTestUserId, signInAsTestUser } from './support/auth';
+import { resetWeekMealPlans } from './support/planning';
 
 function toDateParam(date: Date): string {
   const year = date.getFullYear();
@@ -31,6 +32,7 @@ test.describe('Planning hebdo', () => {
   }) => {
     // Email stable et réutilisé à chaque run : évite d'accumuler un household
     // orphelin par exécution nocturne sur le projet Supabase réel.
+    const userId = await ensureTestUserId('e2e-planning@remy.test');
     await signInAsTestUser(page, 'e2e-planning@remy.test');
 
     const runId = Date.now();
@@ -63,6 +65,13 @@ test.describe('Planning hebdo', () => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + 7);
     const startDateParam = toDateParam(startDate);
+
+    // Repart d'une semaine vide : les compteurs du résumé plus bas (Tag "Batch",
+    // "À assigner"...) comptent tous les créneaux de la page, pas seulement ceux de
+    // ce run — sans ça, un retry ou un second run nocturne le même jour sur ce
+    // household stable fait dériver ces compteurs (créneaux/assignations qui
+    // s'accumulent au lieu d'être remplacés).
+    await resetWeekMealPlans(userId, startDate);
 
     // `reconfigurer=1` force l'affichage du formulaire de config même si cette
     // date porte déjà des créneaux d'un run précédent (rejoué le même jour).

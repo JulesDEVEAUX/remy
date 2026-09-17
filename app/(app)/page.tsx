@@ -15,18 +15,19 @@ function capitalize(label: string) {
 export default async function HomePage() {
   const household = await getCurrentHousehold();
   const now = new Date();
-  const stockEntries = await prisma.stock.findMany({
-    where: { householdId: household.id },
-    include: { ingredient: true },
-    orderBy: { expiresAt: 'asc' },
-    take: SOON_EXPIRING_COUNT,
-  });
+  const [stockEntries, todayMealPlans] = await Promise.all([
+    prisma.stock.findMany({
+      where: { householdId: household.id },
+      include: { ingredient: true },
+      orderBy: { expiresAt: 'asc' },
+      take: SOON_EXPIRING_COUNT,
+    }),
+    prisma.mealPlan.findMany({
+      where: { householdId: household.id, date: { gte: startOfDay(now), lt: addDays(now, 1) } },
+      include: { recipe: true },
+    }),
+  ]);
   const soonExpiring = stockEntries.map((entry) => toStockViewModel(entry, now));
-
-  const todayMealPlans = await prisma.mealPlan.findMany({
-    where: { householdId: household.id, date: { gte: startOfDay(now), lt: addDays(now, 1) } },
-    include: { recipe: true },
-  });
   const todayMeals = toTodaySlotViewModels(todayMealPlans);
   const currentWeekStartParam = formatDateParam(getCurrentWeekStart(now));
 

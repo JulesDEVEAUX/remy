@@ -18,6 +18,30 @@ export type OnboardingValidationResult =
   | { ok: true; data: OnboardingInput }
   | { ok: false; errors: OnboardingFieldErrors };
 
+/** Valide un nom de foyer isolé — réutilisé par l'onboarding et les Paramètres. */
+export function validateHouseholdName(rawName: string): { ok: true; data: string } | { ok: false; error: string } {
+  const name = rawName.trim();
+  if (!name) {
+    return { ok: false, error: 'Le nom du foyer est obligatoire.' };
+  }
+  if (name.length > HOUSEHOLD_NAME_MAX_LENGTH) {
+    return { ok: false, error: `Le nom dépasse ${HOUSEHOLD_NAME_MAX_LENGTH} caractères.` };
+  }
+  return { ok: true, data: name };
+}
+
+/** Valide un nom de mangeur isolé — réutilisé par l'onboarding et les Paramètres. */
+export function validatePersonName(rawName: string): { ok: true; data: string } | { ok: false; error: string } {
+  const name = rawName.trim();
+  if (!name) {
+    return { ok: false, error: 'Le prénom est obligatoire.' };
+  }
+  if (name.length > PERSON_NAME_MAX_LENGTH) {
+    return { ok: false, error: `Le prénom dépasse ${PERSON_NAME_MAX_LENGTH} caractères.` };
+  }
+  return { ok: true, data: name };
+}
+
 /**
  * Valide le formulaire d'onboarding avant écriture Prisma : nom du foyer et
  * au moins un mangeur. Les lignes de nom vides sont ignorées plutôt que
@@ -26,25 +50,23 @@ export type OnboardingValidationResult =
 export function validateOnboardingInput(values: OnboardingFormValues): OnboardingValidationResult {
   const errors: OnboardingFieldErrors = {};
 
-  const householdName = values.householdName.trim();
-  if (!householdName) {
-    errors.householdName = 'Le nom du foyer est obligatoire.';
-  } else if (householdName.length > HOUSEHOLD_NAME_MAX_LENGTH) {
-    errors.householdName = `Le nom dépasse ${HOUSEHOLD_NAME_MAX_LENGTH} caractères.`;
+  const householdNameResult = validateHouseholdName(values.householdName);
+  if (!householdNameResult.ok) {
+    errors.householdName = householdNameResult.error;
   }
 
   const personNames: string[] = [];
   let hasTooLongName = false;
   for (const rawName of values.personNames) {
-    const name = rawName.trim();
-    if (!name) {
+    if (!rawName.trim()) {
       continue;
     }
-    if (name.length > PERSON_NAME_MAX_LENGTH) {
+    const result = validatePersonName(rawName);
+    if (!result.ok) {
       hasTooLongName = true;
       continue;
     }
-    personNames.push(name);
+    personNames.push(result.data);
   }
 
   if (hasTooLongName) {
@@ -59,5 +81,8 @@ export function validateOnboardingInput(values: OnboardingFormValues): Onboardin
     return { ok: false, errors };
   }
 
-  return { ok: true, data: { householdName, personNames } };
+  return {
+    ok: true,
+    data: { householdName: householdNameResult.ok ? householdNameResult.data : values.householdName, personNames },
+  };
 }

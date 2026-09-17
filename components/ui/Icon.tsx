@@ -48,4 +48,5 @@ export const ICONS = {
   suivant: 'ArrowRight',
   fermer: 'X',
   refaire: 'Repeat',
+  reglages: 'Settings',
 } as const satisfies Record<string, IconName>;

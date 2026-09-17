@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Button, EmptyState, ICONS, ListRow, Tag, Wordmark } from '@/components/ui';
+import { Button, EmptyState, ICONS, Icon, IconButton, ListRow, Tag, Wordmark } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { toStockViewModel } from '@/lib/stock/mapping';
 import { prisma } from '@/lib/prisma';
@@ -29,9 +29,16 @@ export default async function HomePage() {
     <main className="p-6 pb-32">
       <header className="mb-6 flex items-center justify-between">
         <Wordmark size={28} />
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-600">
-          {dateLabel}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-600">
+            {dateLabel}
+          </span>
+          <Link href="/parametres">
+            <IconButton aria-label="Paramètres">
+              <Icon name={ICONS.reglages} size={18} />
+            </IconButton>
+          </Link>
+        </div>
       </header>
 
       <h1 className="mb-8 font-display text-[30px] leading-[1.1] text-ink">Voici où tu en es.</h1>

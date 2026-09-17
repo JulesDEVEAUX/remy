@@ -33,11 +33,14 @@ export function RecipeForm({
   defaultValues,
   submitLabel,
   ingredientOptions,
+  redirectTo,
 }: {
   action: (state: RecipeActionState, formData: FormData) => Promise<RecipeActionState>;
   defaultValues?: RecipeFormValues;
   submitLabel: string;
   ingredientOptions: IngredientOption[];
+  /** Page vers laquelle revenir après l'ajout — sinon la liste des recettes. */
+  redirectTo?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const values = state?.values ?? defaultValues;
@@ -58,6 +61,7 @@ export function RecipeForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
       <TextField
         label="Nom"
         name="name"

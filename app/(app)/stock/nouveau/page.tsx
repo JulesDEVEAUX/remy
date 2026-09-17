@@ -20,7 +20,7 @@ export default async function NewStockPage() {
           <p className="font-sans text-[15px] text-clay-700 dark:text-clay-400">
             Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord.
           </p>
-          <Link href="/ingredients/nouveau">
+          <Link href="/ingredients/nouveau?redirectTo=/stock/nouveau">
             <Button block>Ajouter un ingrédient</Button>
           </Link>
         </div>

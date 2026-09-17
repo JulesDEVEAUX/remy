@@ -5,9 +5,14 @@ Dernière mise à jour : 2026-09-17
 
 ## État du setup au 17/09/2026
 
-- Repo GitHub créé et prêt
-- Projet Supabase créé et prêt
-- Rien n'est encore scaffoldé côté code : ce document est le point de départ
+- Repo scaffoldé : Next.js (App Router) + Prisma + Tailwind, déploiement Vercel configuré
+- Projet Supabase connecté (Postgres via Prisma ; Auth par lien magique en place)
+- Authentification : aucune n'existait avant le CRUD ingrédients ; ajoutée à cette
+  occasion (lien magique par email, pas de mot de passe) car le scoping par foyer en
+  avait besoin — voir Risques et décisions ouvertes
+- Ingrédients : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
+  scopé au foyer de l'utilisateur connecté) — PR #1
+- Recettes, stock, moteur de suggestion, liste de courses, planning : pas commencés
 
 ## Contexte et objectifs
 
@@ -42,9 +47,13 @@ Justification : usage principal sur navigateur mobile, besoin de scalabilité mu
 
 Champs nutrition prévus sur `Ingredient` mais non prioritaires pour le MVP (voir Risques et décisions ouvertes). Le schéma Prisma complet et à jour fait foi sur les détails de champs/types, pas ce tableau.
 
+`Household` porte désormais `ownerUserId` (id d'un utilisateur Supabase Auth) pour le
+scoping par foyer — un utilisateur = un foyer pour l'instant (voir Risques et décisions
+ouvertes).
+
 ## Scope MVP (Tier 1) — ordre de build
 
-1. CRUD ingrédients et recettes
+1. CRUD ingrédients (fait, PR #1) et recettes (à faire)
 2. Gestion du stock (ajout/retrait, péremption courte/moyenne/longue)
 3. Moteur de suggestion de recettes (stock + saison + tags de préférence)
 4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
@@ -81,6 +90,15 @@ Champs nutrition prévus sur `Ingredient` mais non prioritaires pour le MVP (voi
 - Nutrition : reportée après le MVP (décision utilisateur du 17/09/2026)
 - Carrefour : pas d'API publique, solution manuelle uniquement retenue pour éviter le risque de blocage de compte (décision utilisateur du 17/09/2026)
 - Risque agent CI : gate humain sur le merge en phase initiale ; automatisation prévue une fois le pipeline éprouvé (décision utilisateur du 17/09/2026)
+- Auth : le repo n'avait aucune authentification avant le CRUD ingrédients. Plutôt que de
+  stubber le foyer, Supabase Auth a été implémenté à cette occasion — lien magique par
+  email, pas de mot de passe (décision utilisateur du 17/09/2026). Un utilisateur = un
+  foyer pour l'instant (`Household.ownerUserId`, créé au premier accès) ; l'ouverture à
+  plusieurs membres par foyer reste à faire, sans refonte de schéma attendue
+- Pipeline CI/CD : `nightly-regression.yml` ne pouvait en réalité jamais s'exécuter avec
+  succès avant le 17/09/2026 (conflit de version pnpm, navigateurs Playwright non
+  installés, flag `--run` invalide pour Playwright) — corrigé au passage dans la PR #1,
+  premier run vert confirmé le 17/09/2026
 
 ## Fichiers de référence dans ce repo
 

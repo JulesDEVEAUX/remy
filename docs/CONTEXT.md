@@ -51,8 +51,20 @@ Dernière mise à jour : 2026-09-17
   serveur), pour réutiliser un même plat sans dupliquer la recette. Section « Repas du
   jour » de l'Accueil alimentée par les vrais créneaux du jour. Voir Risques et
   décisions ouvertes pour le mapping nombre de repas → types de repas retenu
-- Liste de courses : logique métier pas commencée (interface posée en placeholder,
-  voir ci-dessous)
+- Liste de courses : génération réelle des besoins par `computeResidualQuantities`
+  (`lib/shopping/`) — somme des `RecipeIngredient` des recettes planifiées de la
+  semaine moins le `Stock` actuel, par ingrédient et par unité (pas de conversion
+  d'unité). Page `/courses` : items groupés par rayon puis par source d'achat
+  (`ShoppingListItem.source` : Carrefour / hors-Carrefour), coche persistée, ajout
+  manuel d'un item hors recette, bouton « vider les cochés » — PR #19
+- Commentaires et historique de réalisation par recette : note personnelle et
+  commentaire libre sur `Recipe`, marquage « réalisé aujourd'hui » qui met à jour
+  `Recipe.lastMadeAt` (aucun nouveau champ Prisma, réutilise le modèle existant)
+  — PR #21
+- Intégration Tier 1 : les 4 lots ci-dessus (suggestions, planning, courses,
+  commentaires) intégrés depuis leurs branches respectives sur
+  `integration/tier1-mvp` le 17/09/2026, PR ouverte vers `main` — voir Risques
+  et décisions ouvertes pour le détail de l'intégration
 
 ## Design / interface — état au 17/09/2026
 
@@ -69,10 +81,9 @@ opposables en review) :
   bientôt, repas du jour), Ingrédients, Recettes, Stock, Paramètres, Suggestions,
   Planning (configuration, vue par jour en scroll-snap + vue résumé, écran d'assignation
   par créneau)
-- **Écrans en placeholder design uniquement** (pas de logique métier, jeu de données
-  statique de démo) : Courses (RayonGroup + CheckRow, coche visuelle non persistée,
-  bouton « Copier pour Carrefour » désactivé) — en attente du dev fonctionnel
-  correspondant (point 4 du scope MVP)
+- **Courses** : passé de placeholder design à logique réelle avec l'intégration Tier 1
+  (voir État du setup) — le bouton « Copier pour Carrefour » reste désactivé (roadmap
+  V2, intégration Carrefour manuelle uniquement)
 - **Changement de comportement notable** : `/` (Accueil) nécessite désormais une
   session, alors que c'était un écran statique public avant — attendu pour un résumé
   personnalisé au foyer
@@ -120,10 +131,11 @@ ouvertes).
 2. Gestion du stock (fait, PR #4) : ajout/ajustement/retrait, péremption
    courte/moyenne/longue
 3. Moteur de suggestion de recettes (fait) : stock + saison + tags de préférence
-4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
+4. Génération de liste de courses groupée par catégorie, séparée Carrefour /
+   hors-Carrefour (fait)
 5. Planning hebdo configurable (fait) : nombre de repas, batch cooking, priorité aux
    produits proches péremption
-6. Commentaires et historique de réalisation par recette
+6. Commentaires et historique de réalisation par recette (fait)
 
 ## Roadmap V2 et bonus (pas avant que le Tier 1 soit stable)
 
@@ -180,6 +192,24 @@ ouvertes).
   petit-déjeuner ; 4 → + collation). Portée de la règle de réutilisation batch cooking
   (une recette sur plusieurs créneaux nécessite `isBatch`) limitée à la semaine affichée,
   faute de portée précisée au PRD. À affiner à l'usage
+- Intégration Tier 1 (17/09/2026) : les 4 branches suggestions/courses/planning/
+  commentaires ont toutes mergé proprement (aucun conflit) sur `integration/tier1-mvp`
+  car chacune avait déjà été créée depuis `main` (ou, pour planning, depuis la branche
+  suggestions déjà avancée) plutôt que divergé en parallèle. Vérifié explicitement que
+  `lib/planning/picker.ts` appelle `rankRecipes`/`toSuggestionViewModel` avec la
+  signature réelle de `lib/suggestions/`. Bug trouvé et corrigé au passage : un octet
+  NUL littéral dans le séparateur de clé de `computeResidualQuantities`
+  (`lib/shopping/quantity.ts`), qui faisait détecter le fichier comme binaire par git —
+  remplacé par `::`. Homogénéité déjà correcte sans retouche nécessaire : les 4 lots
+  utilisent tous `getCurrentHousehold()` pour le scoping foyer et réutilisent
+  `components/ui/` sans divergence. `feat/auth-password` (PR #20) est une 5e PR ouverte
+  en parallèle mais hors scope de cette intégration (n'appartient à aucun des 5 lots
+  Tier 1) — non touchée. Tests e2e Playwright non rejoués localement faute de Postgres/
+  Docker disponible sur la machine d'intégration (le `webServer` Playwright pointerait
+  sinon sur le vrai Supabase de dev, partagé avec l'usage manuel en parallèle) ; lint,
+  typecheck, tests unitaires et build ont été revérifiés verts après chaque merge — ce
+  qui correspond au gate réel de `ci.yml` (l'e2e n'y tourne pas non plus par PR,
+  seulement en nightly sur `main`)
 - Git/PR empilées et squash merge : GitHub ne retargete pas automatiquement une PR
   dont la branche de base est supprimée après merge — il la ferme, et une PR fermée
   dont la base a disparu ne peut plus être rouverte ni retargetée (`gh pr edit --base`

@@ -54,6 +54,11 @@ plutôt que d'inventer un nouveau motif.
 - Sécurité : pas de requête Prisma construite par concaténation de string
 - Perf mobile : pas de fetch bloquant côté client sans état de chargement
 - Cohérence : respecter les entités du schéma Prisma, ne pas dupliquer un champ existant
+- Scoping foyer : toute requête Prisma sur une entité liée à un foyer filtre via
+  `householdId: household.id`, `household` obtenu par `getCurrentHousehold()`
+  (`lib/household.ts`) — pas de résolution ad hoc du foyer/utilisateur ailleurs.
+  Pattern confirmé unique sur les 5 lots du MVP lors de l'intégration Tier 1
+  (17/09/2026, voir `docs/CONTEXT.md`)
 
 ## PR
 - Une PR = un sujet. Titre au format `feat: ...` / `fix: ...` / `chore: ...`

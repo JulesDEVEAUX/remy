@@ -1,4 +1,5 @@
 import type { Recipe, RecipeIngredient, Saison } from '@prisma/client';
+import { formatLastMade } from './history';
 import type { RecipeFormValues, RecipeIngredientRowInput } from './validation';
 
 /** Extrait les champs bruts d'un <form> recette — aucune validation ici. */
@@ -40,6 +41,7 @@ export type RecipeViewModel = {
   seasonLabels: string[];
   tags: string[];
   ingredientCount: number;
+  lastMadeLabel: string;
 };
 
 /** Convertit une Recipe Prisma (avec ses ingrédients) en modèle d'affichage. */
@@ -52,6 +54,7 @@ export function toRecipeViewModel(recipe: Recipe & { ingredients: RecipeIngredie
     seasonLabels: recipe.seasons.map((season) => SEASON_LABELS[season]),
     tags: recipe.tags,
     ingredientCount: recipe.ingredients.length,
+    lastMadeLabel: formatLastMade(recipe.lastMadeAt),
   };
 }
 

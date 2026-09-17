@@ -33,8 +33,39 @@ Dernière mise à jour : 2026-09-17
   (ajout/suppression de `Person`), section préférences encore en placeholder — PR #16
 - Interface visuelle appliquée sur l'ensemble de l'app (voir section « Design /
   interface » ci-dessous) — PR #5, #6, #7, #8/#14, #9/#12, #10/#13, #11/#16
-- Moteur de suggestion, liste de courses, planning : logique métier pas commencée
-  (interfaces posées en placeholder, voir ci-dessous)
+- Moteur de suggestion de recettes : `lib/suggestions/` (logique pure, aucune
+  dépendance à une route Next.js) note chaque recette du foyer à partir du taux de
+  couverture de ses `RecipeIngredient` par le `Stock` actuel (poids dominant), avec
+  bonus si un ingrédient utilisé périme bientôt et si la saison courante correspond
+  à `Recipe.seasons` (ou `TOUTE_ANNEE`). Page `/suggestions` : top recettes triées par
+  score avec badges de justification, filtre par tag qui boost le score au lieu de
+  filtrer en dur. Voir Risques et décisions ouvertes pour les poids retenus
+- Planning hebdo : `lib/planning/` génère les créneaux `MealPlan` d'une semaine (7 jours
+  × nombre de repas/jour configuré) à partir d'une date de début choisie par
+  l'utilisateur, idempotent grâce à une contrainte d'unicité `(householdId, date,
+  mealType)` ajoutée sur `MealPlan`. Page `/planning` : configuration initiale, vue
+  swipeable par jour et vue résumé (indicateur sur les créneaux sans recette), avec
+  navigation semaine précédente/suivante. Assignation d'une recette par créneau sur
+  `/planning/[mealPlanId]`, sélecteur trié par le moteur de suggestion existant
+  (priorité péremption proche). Flag `isBatch` : une recette ne peut couvrir plusieurs
+  créneaux de la semaine que si le batch cooking est explicitement coché (validation
+  serveur), pour réutiliser un même plat sans dupliquer la recette. Section « Repas du
+  jour » de l'Accueil alimentée par les vrais créneaux du jour. Voir Risques et
+  décisions ouvertes pour le mapping nombre de repas → types de repas retenu
+- Liste de courses : génération réelle des besoins par `computeResidualQuantities`
+  (`lib/shopping/`) — somme des `RecipeIngredient` des recettes planifiées de la
+  semaine moins le `Stock` actuel, par ingrédient et par unité (pas de conversion
+  d'unité). Page `/courses` : items groupés par rayon puis par source d'achat
+  (`ShoppingListItem.source` : Carrefour / hors-Carrefour), coche persistée, ajout
+  manuel d'un item hors recette, bouton « vider les cochés » — PR #19
+- Commentaires et historique de réalisation par recette : note personnelle et
+  commentaire libre sur `Recipe`, marquage « réalisé aujourd'hui » qui met à jour
+  `Recipe.lastMadeAt` (aucun nouveau champ Prisma, réutilise le modèle existant)
+  — PR #21
+- Intégration Tier 1 : les 4 lots ci-dessus (suggestions, planning, courses,
+  commentaires) intégrés depuis leurs branches respectives sur
+  `integration/tier1-mvp` le 17/09/2026, PR ouverte vers `main` — voir Risques
+  et décisions ouvertes pour le détail de l'intégration
 
 ## Design / interface — état au 17/09/2026
 
@@ -48,12 +79,12 @@ opposables en review) :
   pas d'onglet dédié) ; nouveaux composants transverses `PageHeader` et `EmptyState`
   dans `components/ui/`, ajoutés à la liste de la règle 2 de `CLAUDE.md`
 - **Écrans habillés avec de vraies données** : Accueil (résumé — stock qui périme
-  bientôt, repas du jour), Ingrédients, Recettes, Stock, Paramètres
-- **Écrans en placeholder design uniquement** (pas de logique métier, jeu de données
-  statique de démo) : Courses (RayonGroup + CheckRow, coche visuelle non persistée,
-  bouton « Copier pour Carrefour » désactivé) et Planning (sélecteur de jour +
-  scroll-snap CSS en guise de swipe, sans logique de geste JS) — en attente du dev
-  fonctionnel correspondant (points 3 à 5 du scope MVP)
+  bientôt, repas du jour), Ingrédients, Recettes, Stock, Paramètres, Suggestions,
+  Planning (configuration, vue par jour en scroll-snap + vue résumé, écran d'assignation
+  par créneau)
+- **Courses** : passé de placeholder design à logique réelle avec l'intégration Tier 1
+  (voir État du setup) — le bouton « Copier pour Carrefour » reste désactivé (roadmap
+  V2, intégration Carrefour manuelle uniquement)
 - **Changement de comportement notable** : `/` (Accueil) nécessite désormais une
   session, alors que c'était un écran statique public avant — attendu pour un résumé
   personnalisé au foyer
@@ -100,10 +131,12 @@ ouvertes).
 1. CRUD ingrédients (fait, PR #1) et recettes (fait, PR #3)
 2. Gestion du stock (fait, PR #4) : ajout/ajustement/retrait, péremption
    courte/moyenne/longue
-3. Moteur de suggestion de recettes (stock + saison + tags de préférence)
-4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
-5. Planning hebdo configurable (nombre de repas, batch cooking, priorité aux produits proches péremption)
-6. Commentaires et historique de réalisation par recette
+3. Moteur de suggestion de recettes (fait) : stock + saison + tags de préférence
+4. Génération de liste de courses groupée par catégorie, séparée Carrefour /
+   hors-Carrefour (fait)
+5. Planning hebdo configurable (fait) : nombre de repas, batch cooking, priorité aux
+   produits proches péremption
+6. Commentaires et historique de réalisation par recette (fait)
 
 ## Roadmap V2 et bonus (pas avant que le Tier 1 soit stable)
 
@@ -157,6 +190,35 @@ ouvertes).
   par défaut dans `lib/stock/expiry.ts` faute de valeurs spécifiées au PRD — à revoir si
   elles s'avèrent trop génériques à l'usage, éventuellement par ingrédient plutôt que
   par seule durée de conservation
+- Suggestions : poids de score (couverture stock ×60, bonus péremption proche +25,
+  bonus saison +15, boost +10 par tag filtré sélectionné) et seuil « périme bientôt »
+  (5 jours, ou conservation courte quelle que soit la date) fixés par défaut dans
+  `lib/suggestions/score.ts` faute de valeurs spécifiées au PRD — de même pour le
+  découpage des saisons météo par mois dans `lib/suggestions/season.ts`. À affiner à
+  l'usage, comme les durées de péremption du stock ci-dessus
+- Planning : mapping nombre de repas/jour → types de repas non spécifié au PRD, retenu
+  par défaut dans `lib/planning/slots.ts` (1 → dîner ; 2 → déjeuner, dîner ; 3 → +
+  petit-déjeuner ; 4 → + collation). Portée de la règle de réutilisation batch cooking
+  (une recette sur plusieurs créneaux nécessite `isBatch`) limitée à la semaine affichée,
+  faute de portée précisée au PRD. À affiner à l'usage
+- Intégration Tier 1 (17/09/2026) : les 4 branches suggestions/courses/planning/
+  commentaires ont toutes mergé proprement (aucun conflit) sur `integration/tier1-mvp`
+  car chacune avait déjà été créée depuis `main` (ou, pour planning, depuis la branche
+  suggestions déjà avancée) plutôt que divergé en parallèle. Vérifié explicitement que
+  `lib/planning/picker.ts` appelle `rankRecipes`/`toSuggestionViewModel` avec la
+  signature réelle de `lib/suggestions/`. Bug trouvé et corrigé au passage : un octet
+  NUL littéral dans le séparateur de clé de `computeResidualQuantities`
+  (`lib/shopping/quantity.ts`), qui faisait détecter le fichier comme binaire par git —
+  remplacé par `::`. Homogénéité déjà correcte sans retouche nécessaire : les 4 lots
+  utilisent tous `getCurrentHousehold()` pour le scoping foyer et réutilisent
+  `components/ui/` sans divergence. `feat/auth-password` (PR #20) est une 5e PR ouverte
+  en parallèle mais hors scope de cette intégration (n'appartient à aucun des 5 lots
+  Tier 1) — non touchée. Tests e2e Playwright non rejoués localement faute de Postgres/
+  Docker disponible sur la machine d'intégration (le `webServer` Playwright pointerait
+  sinon sur le vrai Supabase de dev, partagé avec l'usage manuel en parallèle) ; lint,
+  typecheck, tests unitaires et build ont été revérifiés verts après chaque merge — ce
+  qui correspond au gate réel de `ci.yml` (l'e2e n'y tourne pas non plus par PR,
+  seulement en nightly sur `main`)
 - Git/PR empilées et squash merge : GitHub ne retargete pas automatiquement une PR
   dont la branche de base est supprimée après merge — il la ferme, et une PR fermée
   dont la base a disparu ne peut plus être rouverte ni retargetée (`gh pr edit --base`

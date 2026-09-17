@@ -6,6 +6,8 @@ const INSTRUCTIONS_MAX_LENGTH = 4000;
 const UNIT_MAX_LENGTH = 20;
 const TAG_MAX_LENGTH = 30;
 const TAGS_MAX_COUNT = 10;
+const COMMENT_MAX_LENGTH = 1000;
+const PERSONAL_NOTE_MAX_LENGTH = 2000;
 
 export type RecipeIngredientRowInput = {
   ingredientId: string;
@@ -179,4 +181,29 @@ export function validateRecipeInput(
     ok: true,
     data: { name, sourceUrl, instructions, prepMinutes, seasons, tags, ingredients },
   };
+}
+
+export type CommentValidationResult = { ok: true; body: string } | { ok: false; error: string };
+
+/** Un RecipeComment ne peut jamais être vide : c'est un historique, pas un brouillon. */
+export function validateRecipeComment(raw: string): CommentValidationResult {
+  const body = raw.trim();
+  if (!body) {
+    return { ok: false, error: 'Le commentaire ne peut pas être vide.' };
+  }
+  if (body.length > COMMENT_MAX_LENGTH) {
+    return { ok: false, error: `Le commentaire dépasse ${COMMENT_MAX_LENGTH} caractères.` };
+  }
+  return { ok: true, body };
+}
+
+export type PersonalNoteValidationResult = { ok: true; note: string | null } | { ok: false; error: string };
+
+/** Note perso : unique et optionnelle, une valeur vide efface la note existante. */
+export function validatePersonalNote(raw: string): PersonalNoteValidationResult {
+  const note = raw.trim();
+  if (note.length > PERSONAL_NOTE_MAX_LENGTH) {
+    return { ok: false, error: `La note dépasse ${PERSONAL_NOTE_MAX_LENGTH} caractères.` };
+  }
+  return { ok: true, note: note || null };
 }

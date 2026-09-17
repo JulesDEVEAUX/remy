@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Button, EmptyState, ICONS, Icon, IconButton, ListRow, Tag, Wordmark } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
+import { addDays, formatDateParam, getCurrentWeekStart, startOfDay } from '@/lib/planning/dates';
+import { toTodaySlotViewModels } from '@/lib/planning/mapping';
 import { toStockViewModel } from '@/lib/stock/mapping';
 import { prisma } from '@/lib/prisma';
 
@@ -20,6 +22,13 @@ export default async function HomePage() {
     take: SOON_EXPIRING_COUNT,
   });
   const soonExpiring = stockEntries.map((entry) => toStockViewModel(entry, now));
+
+  const todayMealPlans = await prisma.mealPlan.findMany({
+    where: { householdId: household.id, date: { gte: startOfDay(now), lt: addDays(now, 1) } },
+    include: { recipe: true },
+  });
+  const todayMeals = toTodaySlotViewModels(todayMealPlans);
+  const currentWeekStartParam = formatDateParam(getCurrentWeekStart(now));
 
   const dateLabel = capitalize(
     now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }),
@@ -77,16 +86,36 @@ export default async function HomePage() {
         <h2 className="mb-2 font-sans text-[13px] font-bold uppercase tracking-[0.04em] text-clay-800">
           Repas du jour
         </h2>
-        <EmptyState
-          icon={ICONS.semaine}
-          title="Rien de planifié aujourd'hui."
-          description="Le planning n'est pas encore construit."
-          action={
-            <Link href="/planning">
-              <Button variant="secondary">Voir le planning</Button>
-            </Link>
-          }
-        />
+        {todayMeals.length === 0 ? (
+          <EmptyState
+            icon={ICONS.semaine}
+            title="Rien de planifié aujourd'hui."
+            description="Configure ta semaine pour voir tes repas ici."
+            action={
+              <Link href={`/planning?start=${currentWeekStartParam}`}>
+                <Button variant="secondary">Voir le planning</Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {todayMeals.map((meal) => (
+              <ListRow
+                key={meal.id}
+                href={`/planning/${meal.id}?start=${currentWeekStartParam}`}
+                icon={ICONS.cuisine}
+                label={meal.recipeName ?? 'Aucune recette'}
+                meta={meal.mealTypeLabel}
+                tag={
+                  <>
+                    {meal.isBatch && <Tag tone="stock">Batch</Tag>}
+                    {meal.isEmpty && <Tag tone="alerte">À assigner</Tag>}
+                  </>
+                }
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <section>
@@ -94,6 +123,7 @@ export default async function HomePage() {
           Accès rapides
         </h2>
         <div className="flex flex-col gap-1.5">
+          <ListRow href="/suggestions" icon={ICONS.cuisine} label="Voir les suggestions" />
           <ListRow href="/ingredients/nouveau" icon={ICONS.epicerie} label="Ajouter un ingrédient" />
           <ListRow href="/recettes/nouveau" icon={ICONS.cuisine} label="Ajouter une recette" />
           <ListRow href="/courses" icon={ICONS.courses} label="Liste de courses" />

@@ -12,7 +12,9 @@ Next.js (App Router) + Prisma + Supabase (Postgres/Auth/Storage) + Tailwind, mob
 ## État actuel
 
 - Authentification Supabase (lien magique par email) et CRUD ingrédients livrés (`/ingredients`)
-- Recettes, stock, moteur de suggestion, liste de courses, planning : pas commencés
+- CRUD recettes livré (`/recettes`) : composition d'ingrédients existants (quantité + unité),
+  saisons, tags, temps de préparation, lien source
+- Stock, moteur de suggestion, liste de courses, planning : pas commencés
 
 ## Développement
 

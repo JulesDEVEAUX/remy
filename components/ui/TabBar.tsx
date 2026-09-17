@@ -3,20 +3,21 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { Icon, type IconName } from './Icon';
+import { Icon, ICONS, type IconName } from './Icon';
 
 const TABS: { href: string; label: string; icon: IconName }[] = [
-  { href: '/', label: 'Cuisine', icon: 'ChefHat' },
-  { href: '/stock', label: 'Stock', icon: 'Refrigerator' },
-  { href: '/planning', label: 'Semaine', icon: 'CalendarDays' },
-  { href: '/courses', label: 'Courses', icon: 'ShoppingBasket' },
+  { href: '/', label: 'Accueil', icon: ICONS.accueil },
+  { href: '/recettes', label: 'Recettes', icon: ICONS.cuisine },
+  { href: '/stock', label: 'Stock', icon: ICONS.stock },
+  { href: '/courses', label: 'Courses', icon: ICONS.courses },
+  { href: '/planning', label: 'Semaine', icon: ICONS.semaine },
 ];
 
 /** Onglet actif = pastille terracotta-300 sous l'icône. Jamais de soulignement. */
 export function TabBar() {
   const path = usePathname();
   return (
-    <nav className="safe-bottom flex items-center justify-between border-t border-ink/10 bg-sand px-6 pb-5 pt-3">
+    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 flex items-center justify-between border-t border-ink/10 bg-sand px-6 pb-5 pt-3">
       {TABS.map((t) => {
         const active = t.href === '/' ? path === '/' : path.startsWith(t.href);
         return (

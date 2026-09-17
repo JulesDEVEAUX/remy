@@ -25,6 +25,7 @@ export function Icon({
 
 /** Vocabulaire d'icônes du produit — un sens, une icône, partout. */
 export const ICONS = {
+  accueil: 'House',
   cuisine: 'ChefHat',
   stock: 'Refrigerator',
   semaine: 'CalendarDays',

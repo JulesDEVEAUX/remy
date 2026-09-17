@@ -31,7 +31,7 @@ test.describe('Commentaires et historique de réalisation', () => {
     await page.goto('/recettes/nouveau');
     await page.getByLabel('Nom').fill(recipeName);
     await page.getByLabel('Instructions').fill('Faire revenir le riz puis mouiller petit à petit.');
-    await page.getByLabel('Ingrédient').selectOption({ label: ingredientName });
+    await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: ingredientName });
     await page.getByLabel('Qté').fill('200');
     await page.getByLabel('Unité').fill('g');
     await page.getByRole('button', { name: 'Ajouter', exact: true }).click();

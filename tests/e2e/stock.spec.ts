@@ -38,14 +38,14 @@ test.describe('Gestion du stock', () => {
     // courte sans date de péremption saisie : si le tri par urgence fonctionne, le
     // second (estimation plus proche) doit malgré tout apparaître avant dans la liste.
     await page.goto('/stock/nouveau');
-    await page.getByLabel('Ingrédient').selectOption({ label: laterName });
+    await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: laterName });
     await page.getByLabel('Quantité').fill('2');
     await page.getByLabel('Unité').fill('kg');
     await page.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page).toHaveURL(/\/stock$/);
 
     await page.goto('/stock/nouveau');
-    await page.getByLabel('Ingrédient').selectOption({ label: soonName });
+    await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: soonName });
     await page.getByLabel('Quantité').fill('4');
     await page.getByLabel('Unité').fill('pot');
     await page.getByRole('button', { name: 'Ajouter' }).click();

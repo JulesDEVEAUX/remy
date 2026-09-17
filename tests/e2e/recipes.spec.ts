@@ -40,7 +40,7 @@ test.describe('CRUD recettes', () => {
     await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click();
     await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click();
 
-    const ingredientSelects = page.getByLabel('Ingrédient');
+    const ingredientSelects = page.getByRole('combobox', { name: 'Ingrédient' });
     const quantityInputs = page.getByLabel('Qté');
     const unitInputs = page.getByLabel('Unité');
 

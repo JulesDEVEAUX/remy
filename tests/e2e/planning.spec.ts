@@ -56,7 +56,10 @@ test.describe('Planning hebdo', () => {
     // date porte déjà des créneaux d'un run précédent (rejoué le même jour).
     await page.goto(`/planning?start=${startDateParam}&reconfigurer=1`);
     await page.getByLabel('Date de début').fill(startDateParam);
-    await page.getByLabel('1', { exact: true }).check();
+    // { force: true } : l'input radio est en peer sr-only (0x0 visuellement), c'est le
+    // <label> englobant (le Tag stylé) qui reçoit le clic natif — Playwright refuse
+    // d'y voir une cible actionnable alors que c'est le motif attendu.
+    await page.getByLabel('1', { exact: true }).check({ force: true });
     await page.getByRole('button', { name: /Générer la semaine|Mettre à jour la semaine/ }).click();
 
     await expect(page).toHaveURL(new RegExp(`/planning\\?start=${startDateParam}`));

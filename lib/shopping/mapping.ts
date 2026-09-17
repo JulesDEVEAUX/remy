@@ -3,6 +3,36 @@ import type { IconName } from '@/components/ui';
 import { toIngredientViewModel } from '@/lib/ingredients/mapping';
 import type { ShoppingItemFormValues } from './validation';
 
+export type PlannedMealSlot = { recipeId: string | null; isBatch: boolean };
+
+/**
+ * Retourne, pour les créneaux planifiés d'un foyer, la liste des occurrences de
+ * recette à compter pour calculer les besoins en ingrédients de la liste de
+ * courses. Un batch cooking est cuisiné une seule fois même s'il couvre
+ * plusieurs créneaux (cf. assignRecipeAction) : on ne le compte donc qu'une
+ * fois par recette, quel que soit le nombre de créneaux qu'il couvre. Un
+ * créneau non-batch compte pour un repas distinct à chaque occurrence.
+ */
+export function selectPlannedRecipeOccurrences(slots: PlannedMealSlot[]): string[] {
+  const batchRecipesSeen = new Set<string>();
+  const occurrences: string[] = [];
+
+  for (const slot of slots) {
+    if (!slot.recipeId) {
+      continue;
+    }
+    if (slot.isBatch) {
+      if (batchRecipesSeen.has(slot.recipeId)) {
+        continue;
+      }
+      batchRecipesSeen.add(slot.recipeId);
+    }
+    occurrences.push(slot.recipeId);
+  }
+
+  return occurrences;
+}
+
 /** Extrait les champs bruts d'un <form> d'ajout manuel — aucune validation ici. */
 export function parseShoppingItemFormData(formData: FormData): ShoppingItemFormValues {
   return {

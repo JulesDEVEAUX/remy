@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { signInAsTestUser } from './support/auth';
+import { ensureTestUserId, signInAsTestUser } from './support/auth';
+import { planTodayLunch } from './support/planning';
 
 test.describe('Liste de courses', () => {
   test.skip(
@@ -7,10 +8,12 @@ test.describe('Liste de courses', () => {
     'nécessite SUPABASE_SECRET_KEY (identifiants admin Supabase) pour authentifier le navigateur de test',
   );
 
-  test('générer depuis une recette, cocher un item puis vider les cochés', async ({ page }) => {
+  test('générer depuis le planning, cocher un item puis vider les cochés', async ({ page }) => {
     // Email stable et réutilisé à chaque run : évite d'accumuler un household
     // orphelin par exécution nocturne sur le projet Supabase réel.
-    await signInAsTestUser(page, 'e2e-courses@remy.test');
+    const email = 'e2e-courses@remy.test';
+    const userId = await ensureTestUserId(email);
+    await signInAsTestUser(page, email);
 
     const runId = Date.now();
     const carrefourIngredient = `Poulet test ${runId}`;
@@ -54,8 +57,10 @@ test.describe('Liste de courses', () => {
     await page.getByRole('button', { name: 'Ajouter', exact: true }).click();
     await expect(page).toHaveURL(/\/recettes$/);
 
+    await planTodayLunch(userId, recipeName);
+
     await page.goto('/courses');
-    await page.getByLabel(recipeName).check();
+    await expect(page.getByText(recipeName, { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Générer la liste' }).click();
 
     // Groupée par source d'achat (Carrefour / Hors Carrefour) puis par catégorie.

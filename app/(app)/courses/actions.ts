@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
-import { parseShoppingItemFormData } from '@/lib/shopping/mapping';
+import { startOfDay } from '@/lib/planning/dates';
+import { parseShoppingItemFormData, selectPlannedRecipeOccurrences } from '@/lib/shopping/mapping';
 import { computeResidualQuantities } from '@/lib/shopping/quantity';
 import { validateShoppingItemInput, type ShoppingItemFieldErrors, type ShoppingItemFormValues } from '@/lib/shopping/validation';
 import { prisma } from '@/lib/prisma';
@@ -53,21 +54,29 @@ export async function addShoppingItemAction(
 }
 
 /**
- * Génère les items manquants à partir des recettes sélectionnées : additionne
- * les RecipeIngredient nécessaires, soustrait le stock actuel, ne crée un item
- * que pour la quantité résiduelle strictement positive.
+ * Génère les items manquants à partir de tous les repas planifiés à venir
+ * (aujourd'hui inclus) : additionne les RecipeIngredient nécessaires pour
+ * chaque occurrence de repas (un batch cooking ne compte qu'une fois même
+ * s'il couvre plusieurs créneaux, cf. selectPlannedRecipeOccurrences),
+ * soustrait le stock actuel, ne crée un item que pour la quantité résiduelle
+ * strictement positive.
  */
-export async function generateShoppingListAction(formData: FormData) {
+export async function generateShoppingListAction() {
   const household = await getCurrentHousehold();
-  const recipeIds = formData.getAll('recipeIds').map(String).filter(Boolean);
-  if (recipeIds.length === 0) {
+
+  const upcomingMealPlans = await prisma.mealPlan.findMany({
+    where: { householdId: household.id, date: { gte: startOfDay(new Date()) }, recipeId: { not: null } },
+    select: { recipeId: true, isBatch: true },
+  });
+  const recipeOccurrences = selectPlannedRecipeOccurrences(upcomingMealPlans);
+  if (recipeOccurrences.length === 0) {
     return;
   }
 
   const [recipeIngredients, stockEntries] = await Promise.all([
     prisma.recipeIngredient.findMany({
-      where: { recipeId: { in: recipeIds }, recipe: { householdId: household.id } },
-      select: { ingredientId: true, quantity: true, unit: true },
+      where: { recipeId: { in: recipeOccurrences }, recipe: { householdId: household.id } },
+      select: { recipeId: true, ingredientId: true, quantity: true, unit: true },
     }),
     prisma.stock.findMany({
       where: { householdId: household.id },
@@ -75,7 +84,15 @@ export async function generateShoppingListAction(formData: FormData) {
     }),
   ]);
 
-  const residuals = computeResidualQuantities(recipeIngredients, stockEntries);
+  const ingredientsByRecipe = new Map<string, typeof recipeIngredients>();
+  for (const ingredient of recipeIngredients) {
+    const list = ingredientsByRecipe.get(ingredient.recipeId) ?? [];
+    list.push(ingredient);
+    ingredientsByRecipe.set(ingredient.recipeId, list);
+  }
+  const needed = recipeOccurrences.flatMap((recipeId) => ingredientsByRecipe.get(recipeId) ?? []);
+
+  const residuals = computeResidualQuantities(needed, stockEntries);
   if (residuals.length === 0) {
     return;
   }

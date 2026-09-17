@@ -68,7 +68,14 @@
   }
 }
 
-/* Respecte l'encoche/la barre système sur mobile (barre d'onglets, PWA standalone). */
+/*
+ * Respecte l'encoche/la barre système sur mobile (barre d'onglets, PWA standalone).
+ * Garantit un plancher de 1.25rem (= pb-5) même sans zone sécurisée, et laisse la
+ * zone système pousser davantage si besoin — sur les iPhone à coins arrondis /
+ * barre d'accueil, la combiner avec pb-5 sur le même élément faisait gagner l'une
+ * des deux règles selon l'ordre de génération Tailwind et coupait le texte des
+ * onglets (cf. issue #26). Ne jamais empiler ce utility avec un pb-* explicite.
+ */
 @utility safe-bottom {
-  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  padding-bottom: max(env(safe-area-inset-bottom), 1.25rem);
 }

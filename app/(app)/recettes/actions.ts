@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { safeRedirectTarget } from '@/lib/navigation';
 import { markAsMadeToday } from '@/lib/recipes/history';
 import { parseRecipeFormData } from '@/lib/recipes/mapping';
 import {
@@ -55,8 +56,9 @@ export async function createRecipeAction(
     },
   });
 
+  const redirectTo = safeRedirectTarget(formData.get('redirectTo')?.toString(), '/recettes');
   revalidatePath('/recettes');
-  redirect('/recettes');
+  redirect(redirectTo);
 }
 
 export async function updateRecipeAction(

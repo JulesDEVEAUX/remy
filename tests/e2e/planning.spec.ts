@@ -1,11 +1,24 @@
 import { expect, test } from '@playwright/test';
-import { signInAsTestUser } from './support/auth';
+import { ensureTestUserId, signInAsTestUser } from './support/auth';
+import { resetWeekMealPlans } from './support/planning';
 
 function toDateParam(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Abréviation à 3 lettres du jour (ex. "Lun"), telle qu'affichée sur la pastille de
+ * navigation de DaysView (`day.dayLabel.slice(0, 3)`). +7 jours depuis aujourd'hui
+ * conserve le jour de semaine du jour du run (cf. commentaire sur startDate plus bas) :
+ * la semaine générée ne commence donc PAS forcément un lundi, d'où ce calcul plutôt
+ * qu'un libellé "Lundi"/"Mardi" en dur.
+ */
+function dayPillLabel(date: Date): string {
+  const label = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+  return (label.charAt(0).toUpperCase() + label.slice(1)).slice(0, 3);
 }
 
 test.describe('Planning hebdo', () => {
@@ -19,6 +32,7 @@ test.describe('Planning hebdo', () => {
   }) => {
     // Email stable et réutilisé à chaque run : évite d'accumuler un household
     // orphelin par exécution nocturne sur le projet Supabase réel.
+    const userId = await ensureTestUserId('e2e-planning@remy.test');
     await signInAsTestUser(page, 'e2e-planning@remy.test');
 
     const runId = Date.now();
@@ -52,6 +66,13 @@ test.describe('Planning hebdo', () => {
     startDate.setDate(startDate.getDate() + 7);
     const startDateParam = toDateParam(startDate);
 
+    // Repart d'une semaine vide : les compteurs du résumé plus bas (Tag "Batch",
+    // "À assigner"...) comptent tous les créneaux de la page, pas seulement ceux de
+    // ce run — sans ça, un retry ou un second run nocturne le même jour sur ce
+    // household stable fait dériver ces compteurs (créneaux/assignations qui
+    // s'accumulent au lieu d'être remplacés).
+    await resetWeekMealPlans(userId, startDate);
+
     // `reconfigurer=1` force l'affichage du formulaire de config même si cette
     // date porte déjà des créneaux d'un run précédent (rejoué le même jour).
     await page.goto(`/planning?start=${startDateParam}&reconfigurer=1`);
@@ -64,17 +85,26 @@ test.describe('Planning hebdo', () => {
 
     await expect(page).toHaveURL(new RegExp(`/planning\\?start=${startDateParam}`));
 
-    // Premier créneau (lundi) : une recette assignée simplement, sans batch.
-    await page.getByText('Lundi', { exact: true }).click();
+    const day1Pill = dayPillLabel(startDate);
+    const day2Date = new Date(startDate);
+    day2Date.setDate(day2Date.getDate() + 1);
+    const day2Pill = dayPillLabel(day2Date);
+
+    // Premier créneau (jour 1 de la semaine générée) : une recette assignée simplement,
+    // sans batch. Navigue via la pastille de jour (pas le <h2> du panneau, potentiellement
+    // hors écran dans le scroller à scroll-snap — Playwright n'arrive pas à cliquer un
+    // élément qu'il doit lui-même faire défiler dans ce type de conteneur) : la pastille
+    // déclenche le scroll programmatique de l'appli elle-même, plus fiable.
+    await page.getByRole('button', { name: day1Pill, exact: true }).click();
     const mondayRow = page.getByText('Aucune recette', { exact: true }).first();
     await mondayRow.click();
     await page.getByText(simpleRecipeName, { exact: true }).click();
     await page.getByRole('button', { name: 'Assigner' }).click();
     await expect(page).toHaveURL(new RegExp(`/planning\\?start=${startDateParam}`));
 
-    // Deuxième créneau (mardi) : la même recette batch, réutilisée sur un
-    // troisième créneau (mercredi) sélectionné dans la liste des autres créneaux.
-    await page.getByText('Mardi', { exact: true }).click();
+    // Deuxième créneau (jour 2) : la même recette batch, réutilisée sur un troisième
+    // créneau sélectionné dans la liste des autres créneaux.
+    await page.getByRole('button', { name: day2Pill, exact: true }).click();
     await page.getByText('Aucune recette', { exact: true }).first().click();
     await page.getByText(batchRecipeName, { exact: true }).click();
     await page.getByLabel('Batch cooking').check();

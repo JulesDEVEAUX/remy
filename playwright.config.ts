@@ -1,4 +1,8 @@
+import dotenv from "dotenv";
+import { expand } from "dotenv-expand";
 import { defineConfig, devices } from "@playwright/test";
+
+expand(dotenv.config({ quiet: true }));
 
 export default defineConfig({
   testDir: "./tests/e2e",

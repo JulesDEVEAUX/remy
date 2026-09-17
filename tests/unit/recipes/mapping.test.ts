@@ -103,6 +103,14 @@ describe('toRecipeViewModel', () => {
     const viewModel = toRecipeViewModel({ ...makeRecipe({ tags: ['rapide'] }), ingredients: [] });
     expect(viewModel.tags).toEqual(['rapide']);
   });
+
+  it('reports the last-made state as a relative label', () => {
+    const neverMade = toRecipeViewModel({ ...makeRecipe({ lastMadeAt: null }), ingredients: [] });
+    expect(neverMade.lastMadeLabel).toBe('jamais réalisée');
+
+    const madeToday = toRecipeViewModel({ ...makeRecipe({ lastMadeAt: new Date() }), ingredients: [] });
+    expect(madeToday.lastMadeLabel).toBe("réalisée aujourd'hui");
+  });
 });
 
 describe('toRecipeFormValues', () => {

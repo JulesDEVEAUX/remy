@@ -39,8 +39,20 @@ Dernière mise à jour : 2026-09-17
   à `Recipe.seasons` (ou `TOUTE_ANNEE`). Page `/suggestions` : top recettes triées par
   score avec badges de justification, filtre par tag qui boost le score au lieu de
   filtrer en dur. Voir Risques et décisions ouvertes pour les poids retenus
-- Liste de courses, planning : logique métier pas commencée (interfaces posées en
-  placeholder, voir ci-dessous)
+- Planning hebdo : `lib/planning/` génère les créneaux `MealPlan` d'une semaine (7 jours
+  × nombre de repas/jour configuré) à partir d'une date de début choisie par
+  l'utilisateur, idempotent grâce à une contrainte d'unicité `(householdId, date,
+  mealType)` ajoutée sur `MealPlan`. Page `/planning` : configuration initiale, vue
+  swipeable par jour et vue résumé (indicateur sur les créneaux sans recette), avec
+  navigation semaine précédente/suivante. Assignation d'une recette par créneau sur
+  `/planning/[mealPlanId]`, sélecteur trié par le moteur de suggestion existant
+  (priorité péremption proche). Flag `isBatch` : une recette ne peut couvrir plusieurs
+  créneaux de la semaine que si le batch cooking est explicitement coché (validation
+  serveur), pour réutiliser un même plat sans dupliquer la recette. Section « Repas du
+  jour » de l'Accueil alimentée par les vrais créneaux du jour. Voir Risques et
+  décisions ouvertes pour le mapping nombre de repas → types de repas retenu
+- Liste de courses : logique métier pas commencée (interface posée en placeholder,
+  voir ci-dessous)
 
 ## Design / interface — état au 17/09/2026
 
@@ -54,12 +66,13 @@ opposables en review) :
   pas d'onglet dédié) ; nouveaux composants transverses `PageHeader` et `EmptyState`
   dans `components/ui/`, ajoutés à la liste de la règle 2 de `CLAUDE.md`
 - **Écrans habillés avec de vraies données** : Accueil (résumé — stock qui périme
-  bientôt, repas du jour), Ingrédients, Recettes, Stock, Paramètres
+  bientôt, repas du jour), Ingrédients, Recettes, Stock, Paramètres, Suggestions,
+  Planning (configuration, vue par jour en scroll-snap + vue résumé, écran d'assignation
+  par créneau)
 - **Écrans en placeholder design uniquement** (pas de logique métier, jeu de données
   statique de démo) : Courses (RayonGroup + CheckRow, coche visuelle non persistée,
-  bouton « Copier pour Carrefour » désactivé) et Planning (sélecteur de jour +
-  scroll-snap CSS en guise de swipe, sans logique de geste JS) — en attente du dev
-  fonctionnel correspondant (points 3 à 5 du scope MVP)
+  bouton « Copier pour Carrefour » désactivé) — en attente du dev fonctionnel
+  correspondant (point 4 du scope MVP)
 - **Changement de comportement notable** : `/` (Accueil) nécessite désormais une
   session, alors que c'était un écran statique public avant — attendu pour un résumé
   personnalisé au foyer
@@ -108,7 +121,8 @@ ouvertes).
    courte/moyenne/longue
 3. Moteur de suggestion de recettes (fait) : stock + saison + tags de préférence
 4. Génération de liste de courses groupée par catégorie, séparée Carrefour / hors-Carrefour
-5. Planning hebdo configurable (nombre de repas, batch cooking, priorité aux produits proches péremption)
+5. Planning hebdo configurable (fait) : nombre de repas, batch cooking, priorité aux
+   produits proches péremption
 6. Commentaires et historique de réalisation par recette
 
 ## Roadmap V2 et bonus (pas avant que le Tier 1 soit stable)
@@ -161,6 +175,11 @@ ouvertes).
   `lib/suggestions/score.ts` faute de valeurs spécifiées au PRD — de même pour le
   découpage des saisons météo par mois dans `lib/suggestions/season.ts`. À affiner à
   l'usage, comme les durées de péremption du stock ci-dessus
+- Planning : mapping nombre de repas/jour → types de repas non spécifié au PRD, retenu
+  par défaut dans `lib/planning/slots.ts` (1 → dîner ; 2 → déjeuner, dîner ; 3 → +
+  petit-déjeuner ; 4 → + collation). Portée de la règle de réutilisation batch cooking
+  (une recette sur plusieurs créneaux nécessite `isBatch`) limitée à la semaine affichée,
+  faute de portée précisée au PRD. À affiner à l'usage
 - Git/PR empilées et squash merge : GitHub ne retargete pas automatiquement une PR
   dont la branche de base est supprimée après merge — il la ferme, et une PR fermée
   dont la base a disparu ne peut plus être rouverte ni retargetée (`gh pr edit --base`

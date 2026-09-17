@@ -1,5 +1,6 @@
-import { MagicLinkForm } from '@/components/auth/MagicLinkForm';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { loginAction } from './actions';
 
 export default function LoginPage() {
-  return <MagicLinkForm mode="login" />;
+  return <LoginForm action={loginAction} />;
 }

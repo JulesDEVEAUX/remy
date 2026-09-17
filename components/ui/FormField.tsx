@@ -2,10 +2,10 @@ import clsx from 'clsx';
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { Icon } from './Icon';
 
-const LABEL = 'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700';
-const FIELD =
+export const LABEL = 'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700';
+export const FIELD =
   'min-h-[48px] rounded-full bg-sand px-5 font-sans text-[15px] text-ink outline-none placeholder:text-clay-500 focus:ring-2 focus:ring-terracotta';
-const ERROR = 'px-2 font-sans text-[12px] font-medium text-terracotta-700';
+export const ERROR = 'px-2 font-sans text-[12px] font-medium text-terracotta-700';
 
 /** Champ texte pastille : libellé technique mono, saisie en Figtree. */
 export function TextField({

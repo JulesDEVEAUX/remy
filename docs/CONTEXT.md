@@ -6,12 +6,13 @@ Dernière mise à jour : 2026-09-17
 ## État du setup au 17/09/2026
 
 - Repo scaffoldé : Next.js (App Router) + Prisma + Tailwind, déploiement Vercel configuré
-- Projet Supabase connecté (Postgres via Prisma ; Auth par lien magique en place)
+- Projet Supabase connecté (Postgres via Prisma ; Auth par email + code numérique à 6
+  chiffres en place)
 - Authentification : aucune n'existait avant le CRUD ingrédients ; ajoutée à cette
-  occasion (lien magique par email, pas de mot de passe) car le scoping par foyer en
-  avait besoin — voir Risques et décisions ouvertes. `/login` et `/signup` coexistent
-  désormais (même formulaire, même logique Supabase — `signInWithOtp` crée le compte
-  au besoin), avec lien croisé entre les deux — PR #6
+  occasion (d'abord lien magique par email, remplacé le 17/09/2026 par un mot de passe
+  numérique à 6 chiffres) car le scoping par foyer en avait besoin — voir Risques et
+  décisions ouvertes. `/login` et `/signup` coexistent, chacun avec sa propre Server
+  Action (`signInWithPassword` / `signUp`), avec lien croisé entre les deux
 - Ingrédients : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
   scopé au foyer de l'utilisateur connecté) — PR #1
 - Recettes : CRUD complet livré et mergé sur `main` (lister/créer/éditer/supprimer,
@@ -135,10 +136,18 @@ ouvertes).
 - Carrefour : pas d'API publique, solution manuelle uniquement retenue pour éviter le risque de blocage de compte (décision utilisateur du 17/09/2026)
 - Risque agent CI : gate humain sur le merge en phase initiale ; automatisation prévue une fois le pipeline éprouvé (décision utilisateur du 17/09/2026)
 - Auth : le repo n'avait aucune authentification avant le CRUD ingrédients. Plutôt que de
-  stubber le foyer, Supabase Auth a été implémenté à cette occasion — lien magique par
-  email, pas de mot de passe (décision utilisateur du 17/09/2026). Un utilisateur = un
-  foyer pour l'instant (`Household.ownerUserId`, créé au premier accès) ; l'ouverture à
-  plusieurs membres par foyer reste à faire, sans refonte de schéma attendue
+  stubber le foyer, Supabase Auth a été implémenté à cette occasion — d'abord lien
+  magique par email (décision utilisateur du 17/09/2026), remplacé le même jour par un
+  mot de passe numérique à 6 chiffres après avoir buté sur le rate limit du mailer par
+  défaut de Supabase (`over_email_send_rate_limit`, ~2-4 emails/heure) déclenché à
+  chaque connexion — voir issue #15. Les données de l'app ne sont pas sensibles (usage
+  foyer privé), donc pas de politique de mot de passe élaborée ; confirmation d'email
+  désactivée côté Supabase (`mailer_autoconfirm`) pour qu'aucun email ne soit plus
+  envoyé ni au login ni au signup. Pas de flow « code oublié » pour l'instant — suite
+  naturelle possible en réutilisant le lien magique (déjà corrigé côté redirection prod).
+  Un utilisateur = un foyer pour l'instant (`Household.ownerUserId`, créé au premier
+  accès) ; l'ouverture à plusieurs membres par foyer reste à faire, sans refonte de
+  schéma attendue
 - Pipeline CI/CD : `nightly-regression.yml` ne pouvait en réalité jamais s'exécuter avec
   succès avant le 17/09/2026 (conflit de version pnpm, navigateurs Playwright non
   installés, flag `--run` invalide pour Playwright) — corrigé au passage dans la PR #1,

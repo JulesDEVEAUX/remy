@@ -6,11 +6,18 @@ import { prisma } from '@/lib/prisma';
 
 export default async function RecettesPage() {
   const household = await getCurrentHousehold();
-  const recipes = await prisma.recipe.findMany({
-    where: { householdId: household.id },
-    include: { ingredients: true },
-    orderBy: { name: 'asc' },
-  });
+  const [recipes, publicRecipes] = await Promise.all([
+    prisma.recipe.findMany({
+      where: { householdId: household.id },
+      include: { ingredients: true },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.recipe.findMany({
+      where: { householdId: { not: household.id }, isPrivate: false },
+      include: { ingredients: true },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
 
   return (
     <main className="p-6 pb-32">
@@ -58,6 +65,26 @@ export default async function RecettesPage() {
             );
           })}
         </div>
+      )}
+
+      {publicRecipes.length > 0 && (
+        <section className="mt-8 flex flex-col gap-1.5">
+          <h2 className="mb-1 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
+            Recettes partagées par d&apos;autres foyers
+          </h2>
+          {publicRecipes.map((recipe) => {
+            const viewModel = toRecipeViewModel(recipe);
+            return (
+              <ListRow
+                key={viewModel.id}
+                href={`/recettes/${viewModel.id}`}
+                icon="ChefHat"
+                label={viewModel.name}
+                tag={<Tag tone="neutre">Public</Tag>}
+              />
+            );
+          })}
+        </section>
       )}
     </main>
   );

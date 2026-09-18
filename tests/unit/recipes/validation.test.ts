@@ -16,6 +16,7 @@ const validValues: RecipeFormValues = {
   seasons: ['HIVER'],
   tags: 'rapide, végétarien',
   ingredientRows: [{ ingredientId: 'ing_1', quantity: '200', unit: 'g' }],
+  isPrivate: false,
 };
 
 describe('validateRecipeInput', () => {
@@ -35,8 +36,17 @@ describe('validateRecipeInput', () => {
         seasons: ['HIVER'],
         tags: ['rapide', 'végétarien'],
         ingredients: [{ ingredientId: 'ing_1', quantity: 200, unit: 'g' }],
+        isPrivate: false,
       },
     });
+  });
+
+  it('carries a checked isPrivate through unchanged', () => {
+    const result = validateRecipeInput({ ...validValues, isPrivate: true }, validIngredientIds);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.isPrivate).toBe(true);
+    }
   });
 
   it('accepts optional fields left empty', () => {

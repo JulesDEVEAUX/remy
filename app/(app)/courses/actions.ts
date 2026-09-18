@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { startOfDay } from '@/lib/planning/dates';
 import { parseShoppingItemFormData, selectPlannedRecipeOccurrences } from '@/lib/shopping/mapping';
 import { computeResidualQuantities } from '@/lib/shopping/quantity';
@@ -15,7 +16,7 @@ export type ShoppingItemActionState =
 
 async function loadHouseholdIngredientSources(householdId: string) {
   const ingredients = await prisma.ingredient.findMany({
-    where: { householdId },
+    where: ingredientCatalogWhere(householdId),
     select: { id: true, defaultSource: true },
   });
   return new Map(ingredients.map((ingredient) => [ingredient.id, ingredient.defaultSource]));

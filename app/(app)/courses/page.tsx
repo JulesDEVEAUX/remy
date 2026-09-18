@@ -1,5 +1,6 @@
 import { Button, EmptyState, ICONS, PageHeader, RayonGroup } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { startOfDay } from '@/lib/planning/dates';
 import { groupShoppingItems, selectPlannedRecipeOccurrences } from '@/lib/shopping/mapping';
 import { prisma } from '@/lib/prisma';
@@ -21,7 +22,7 @@ export default async function CoursesPage() {
       select: { recipeId: true, isBatch: true, recipe: { select: { name: true } } },
     }),
     prisma.ingredient.findMany({
-      where: { householdId: household.id },
+      where: ingredientCatalogWhere(household.id),
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),

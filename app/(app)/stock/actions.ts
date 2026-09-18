@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { estimateExpiryDate } from '@/lib/stock/expiry';
 import { parseStockFormData } from '@/lib/stock/mapping';
 import { validateStockInput, type StockFieldErrors, type StockFormValues } from '@/lib/stock/validation';
@@ -12,7 +13,7 @@ export type StockActionState = { errors: StockFieldErrors; values: StockFormValu
 
 async function loadHouseholdIngredientConservations(householdId: string) {
   const ingredients = await prisma.ingredient.findMany({
-    where: { householdId },
+    where: ingredientCatalogWhere(householdId),
     select: { id: true, conservation: true },
   });
   return new Map(ingredients.map((ingredient) => [ingredient.id, ingredient.conservation]));

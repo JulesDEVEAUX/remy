@@ -11,9 +11,9 @@ import { prisma } from '@/lib/prisma';
 
 export type StockActionState = { errors: StockFieldErrors; values: StockFormValues } | undefined;
 
-async function loadHouseholdIngredientConservations(householdId: string) {
+async function loadHouseholdIngredientConservations(householdId: string, isTestHousehold: boolean) {
   const ingredients = await prisma.ingredient.findMany({
-    where: ingredientCatalogWhere(householdId),
+    where: ingredientCatalogWhere(householdId, isTestHousehold),
     select: { id: true, conservation: true },
   });
   return new Map(ingredients.map((ingredient) => [ingredient.id, ingredient.conservation]));
@@ -24,7 +24,7 @@ export async function createStockAction(
   formData: FormData,
 ): Promise<StockActionState> {
   const household = await getCurrentHousehold();
-  const conservationById = await loadHouseholdIngredientConservations(household.id);
+  const conservationById = await loadHouseholdIngredientConservations(household.id, household.isTestHousehold);
   const values = parseStockFormData(formData);
   const result = validateStockInput(values, new Set(conservationById.keys()));
   if (!result.ok) {
@@ -58,7 +58,7 @@ export async function updateStockAction(
   formData: FormData,
 ): Promise<StockActionState> {
   const household = await getCurrentHousehold();
-  const conservationById = await loadHouseholdIngredientConservations(household.id);
+  const conservationById = await loadHouseholdIngredientConservations(household.id, household.isTestHousehold);
   const values = parseStockFormData(formData);
   const result = validateStockInput(values, new Set(conservationById.keys()));
   if (!result.ok) {

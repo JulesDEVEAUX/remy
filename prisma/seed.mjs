@@ -32,6 +32,16 @@ async function main() {
     { name: "Farine", category: "EPICERIE", defaultUnit: "g", conservation: "LONGUE", defaultSource: "CARREFOUR" },
     { name: "Tomates", category: "FRAIS", defaultUnit: "unité", conservation: "COURTE", defaultSource: "MARCHE" },
     { name: "Riz", category: "EPICERIE", defaultUnit: "g", conservation: "LONGUE", defaultSource: "CARREFOUR" },
+    { name: "Oignon", category: "FRAIS", defaultUnit: "unité", conservation: "LONGUE", defaultSource: "MARCHE" },
+    { name: "Poivron", category: "FRAIS", defaultUnit: "unité", conservation: "COURTE", defaultSource: "MARCHE" },
+    { name: "Ail", category: "EPICERIE", defaultUnit: "unité", conservation: "LONGUE", defaultSource: "MARCHE" },
+    { name: "Huile d'olive", category: "EPICERIE", defaultUnit: "L", conservation: "LONGUE", defaultSource: "CARREFOUR" },
+    { name: "Beurre", category: "FRAIS", defaultUnit: "g", conservation: "COURTE", defaultSource: "CARREFOUR" },
+    { name: "Pâtes", category: "EPICERIE", defaultUnit: "g", conservation: "LONGUE", defaultSource: "CARREFOUR" },
+    { name: "Poulet", category: "FRAIS", defaultUnit: "g", conservation: "COURTE", defaultSource: "CARREFOUR" },
+    { name: "Mozzarella", category: "FRAIS", defaultUnit: "unité", conservation: "COURTE", defaultSource: "CARREFOUR" },
+    { name: "Sel", category: "EPICERIE", defaultUnit: "g", conservation: "LONGUE", defaultSource: "CARREFOUR" },
+    { name: "Poivre", category: "EPICERIE", defaultUnit: "g", conservation: "LONGUE", defaultSource: "CARREFOUR" },
   ];
 
   const ingredients = {};
@@ -89,7 +99,74 @@ async function main() {
         },
       },
     });
-    console.log("2 recettes créées");
+
+    await prisma.recipe.create({
+      data: {
+        householdId: household.id,
+        name: "Omelette nature",
+        instructions:
+          "Battre les oeufs avec le sel et le poivre. Faire fondre le beurre dans une poêle chaude. " +
+          "Verser les oeufs et cuire 3 à 4 minutes en ramenant les bords vers le centre.",
+        prepMinutes: 10,
+        seasons: ["TOUTE_ANNEE"],
+        tags: ["rapide", "végétarien"],
+        ingredients: {
+          create: [
+            { ingredientId: ingredients["Oeufs"].id, quantity: 4, unit: "unité" },
+            { ingredientId: ingredients["Beurre"].id, quantity: 15, unit: "g" },
+            { ingredientId: ingredients["Sel"].id, quantity: 2, unit: "g" },
+            { ingredientId: ingredients["Poivre"].id, quantity: 1, unit: "g" },
+          ],
+        },
+      },
+    });
+
+    await prisma.recipe.create({
+      data: {
+        householdId: household.id,
+        name: "Poulet aux oignons et poivrons",
+        instructions:
+          "Couper le poulet en morceaux et le faire dorer dans l'huile d'olive. Ajouter l'oignon, " +
+          "le poivron et l'ail émincés. Saler, poivrer, couvrir et laisser mijoter 20 minutes à feu doux.",
+        prepMinutes: 35,
+        seasons: ["TOUTE_ANNEE"],
+        tags: ["plat complet"],
+        ingredients: {
+          create: [
+            { ingredientId: ingredients["Poulet"].id, quantity: 500, unit: "g" },
+            { ingredientId: ingredients["Oignon"].id, quantity: 2, unit: "unité" },
+            { ingredientId: ingredients["Poivron"].id, quantity: 2, unit: "unité" },
+            { ingredientId: ingredients["Ail"].id, quantity: 2, unit: "unité" },
+            { ingredientId: ingredients["Huile d'olive"].id, quantity: 0.03, unit: "L" },
+            { ingredientId: ingredients["Sel"].id, quantity: 3, unit: "g" },
+            { ingredientId: ingredients["Poivre"].id, quantity: 2, unit: "g" },
+          ],
+        },
+      },
+    });
+
+    await prisma.recipe.create({
+      data: {
+        householdId: household.id,
+        name: "Salade de pâtes tomate mozzarella",
+        instructions:
+          "Cuire les pâtes al dente puis les refroidir sous l'eau froide. Couper les tomates et la " +
+          "mozzarella en dés. Mélanger le tout avec l'huile d'olive, saler et poivrer.",
+        prepMinutes: 20,
+        seasons: ["ETE"],
+        tags: ["végétarien", "rapide", "froid"],
+        ingredients: {
+          create: [
+            { ingredientId: ingredients["Pâtes"].id, quantity: 250, unit: "g" },
+            { ingredientId: ingredients["Tomates"].id, quantity: 3, unit: "unité" },
+            { ingredientId: ingredients["Mozzarella"].id, quantity: 2, unit: "unité" },
+            { ingredientId: ingredients["Huile d'olive"].id, quantity: 0.02, unit: "L" },
+            { ingredientId: ingredients["Sel"].id, quantity: 2, unit: "g" },
+          ],
+        },
+      },
+    });
+    console.log("5 recettes créées");
   }
 
   const stockCount = await prisma.stock.count({ where: { householdId: household.id } });

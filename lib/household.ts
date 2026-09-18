@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { isTestEmail } from '@/lib/testing';
 
-/** Résout l'id de l'utilisateur Supabase Auth connecté ; redirige vers /login sinon. */
-export async function getCurrentUserId(): Promise<string> {
+async function getCurrentSupabaseUser() {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -13,6 +13,12 @@ export async function getCurrentUserId(): Promise<string> {
     redirect('/login');
   }
 
+  return user;
+}
+
+/** Résout l'id de l'utilisateur Supabase Auth connecté ; redirige vers /login sinon. */
+export async function getCurrentUserId(): Promise<string> {
+  const user = await getCurrentSupabaseUser();
   return user.id;
 }
 
@@ -25,7 +31,8 @@ export async function getCurrentUserId(): Promise<string> {
  * garde d'accès pour les écrans qui manipulent des données scopées au foyer.
  */
 export async function getCurrentHousehold() {
-  const userId = await getCurrentUserId();
+  const user = await getCurrentSupabaseUser();
+  const userId = user.id;
 
   // Lecture d'abord : cette fonction est appelée à chaque navigation sur chaque écran,
   // un upsert systématique forçait une écriture DB (upsert = INSERT ... ON CONFLICT)
@@ -48,6 +55,6 @@ export async function getCurrentHousehold() {
   return prisma.household.upsert({
     where: { ownerUserId: userId },
     update: {},
-    create: { ownerUserId: userId, name: 'Mon foyer' },
+    create: { ownerUserId: userId, name: 'Mon foyer', isTestHousehold: isTestEmail(user.email) },
   });
 }

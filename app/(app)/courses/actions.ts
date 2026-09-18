@@ -20,9 +20,9 @@ export type ShoppingItemActionState =
   | { errors: ShoppingItemFieldErrors; values: ShoppingItemFormValues }
   | undefined;
 
-async function loadHouseholdIngredientSources(householdId: string) {
+async function loadHouseholdIngredientSources(householdId: string, isTestHousehold: boolean) {
   const ingredients = await prisma.ingredient.findMany({
-    where: ingredientCatalogWhere(householdId),
+    where: ingredientCatalogWhere(householdId, isTestHousehold),
     select: { id: true, defaultSource: true },
   });
   return new Map(ingredients.map((ingredient) => [ingredient.id, ingredient.defaultSource]));
@@ -45,7 +45,7 @@ export async function addShoppingItemAction(
   const shoppingListId = String(formData.get('shoppingListId') ?? '');
   await assertShoppingListInHousehold(household.id, shoppingListId);
 
-  const sourceById = await loadHouseholdIngredientSources(household.id);
+  const sourceById = await loadHouseholdIngredientSources(household.id, household.isTestHousehold);
   const values = parseShoppingItemFormData(formData);
   const result = validateShoppingItemInput(values, new Set(sourceById.keys()));
   if (!result.ok) {
@@ -135,7 +135,7 @@ export async function generateShoppingListAction(shoppingListId: string) {
     return;
   }
 
-  const sourceById = await loadHouseholdIngredientSources(household.id);
+  const sourceById = await loadHouseholdIngredientSources(household.id, household.isTestHousehold);
 
   const itemsToCreate = residuals.flatMap((residual) => {
     const source = sourceById.get(residual.ingredientId);

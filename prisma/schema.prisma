@@ -53,6 +53,13 @@ model Household {
   // voir HouseholdMember. Régénérable, null tant qu'il n'a jamais été demandé.
   inviteCode String? @unique
 
+  // Foyer d'un compte de test e2e (email @remy.test, cf. tests/e2e/support/auth.ts),
+  // posé une fois à la création (lib/household.ts) — exclu du catalogue partagé
+  // d'ingrédients/recettes publics (isPrivate=false, cf. issue #31) pour que les
+  // recettes/ingrédients créés par les tests n'atteignent jamais un foyer réel
+  // (cf. issue #66). Le foyer de test continue de voir ses propres données normalement.
+  isTestHousehold Boolean @default(false)
+
   name              String
   createdAt         DateTime           @default(now())
   people            Person[]

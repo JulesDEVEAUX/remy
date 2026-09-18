@@ -27,7 +27,7 @@ export async function ensureHouseholdHasPerson(ownerUserId: string | undefined) 
   const household = await prisma.household.upsert({
     where: { ownerUserId },
     update: {},
-    create: { ownerUserId, name: 'Mon foyer' },
+    create: { ownerUserId, name: 'Mon foyer', isTestHousehold: true },
   });
   const personCount = await prisma.person.count({ where: { householdId: household.id } });
   if (personCount === 0) {

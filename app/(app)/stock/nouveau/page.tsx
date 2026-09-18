@@ -9,7 +9,7 @@ import { StockForm } from '../StockForm';
 export default async function NewStockPage() {
   const household = await getCurrentHousehold();
   const ingredients = await prisma.ingredient.findMany({
-    where: ingredientCatalogWhere(household.id),
+    where: ingredientCatalogWhere(household.id, household.isTestHousehold),
     orderBy: { name: 'asc' },
   });
 

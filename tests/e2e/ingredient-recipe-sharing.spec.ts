@@ -64,4 +64,52 @@ test.describe('Catalogue partagé d’ingrédients et de recettes entre foyers',
     await page.goto('/recettes');
     await expect(page.getByRole('link', { name: new RegExp(recipeName) })).toHaveCount(2);
   });
+
+  test("un ingrédient et une recette publics créés par un foyer de test ne sont pas visibles par un foyer réel", async ({
+    page,
+  }) => {
+    // Foyer A : un compte e2e classique (@remy.test), donc un foyer de test (cf. issue #66).
+    const emailA = 'e2e-sharing-a@remy.test';
+    await ensureTestUserId(emailA);
+
+    // Foyer « réel » : email hors du domaine réservé aux tests e2e, pour que
+    // getCurrentHousehold() le crée avec isTestHousehold=false, comme un vrai utilisateur.
+    const emailReal = 'e2e-real-household@example.com';
+    await ensureTestUserId(emailReal);
+
+    const runId = Date.now();
+    const ingredientName = `Safran test ${runId}`;
+    const recipeName = `Riz au safran test ${runId}`;
+
+    await signInAsTestUser(page, emailA);
+
+    await page.goto('/ingredients/nouveau');
+    await page.getByLabel('Nom').fill(ingredientName);
+    await page.getByLabel('Catégorie').selectOption('EPICERIE');
+    await page.getByLabel('Unité par défaut').selectOption('g');
+    await page.getByLabel('Durée de conservation').selectOption('LONGUE');
+    await page.getByLabel("Source d'achat").selectOption('MARCHE');
+    await page.getByRole('button', { name: 'Ajouter' }).click();
+    await expect(page).toHaveURL(/\/ingredients$/);
+
+    await page.goto('/recettes/nouveau');
+    await page.getByLabel('Nom').fill(recipeName);
+    await page.getByLabel('Instructions').fill('Cuire le riz avec le safran.');
+    await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: ingredientName });
+    await page.getByLabel('Qté').fill('1');
+    await page.getByLabel('Unité').fill('g');
+    await page.getByRole('button', { name: 'Ajouter', exact: true }).click();
+    await expect(page).toHaveURL(/\/recettes$/);
+
+    // Foyer réel : ne doit voir ni l'ingrédient ni la recette du foyer de test.
+    await signInAsTestUser(page, emailReal);
+
+    await page.goto('/stock/nouveau');
+    await expect(
+      page.getByRole('combobox', { name: 'Ingrédient' }).getByRole('option', { name: ingredientName }),
+    ).toHaveCount(0);
+
+    await page.goto('/recettes');
+    await expect(page.getByRole('link', { name: new RegExp(recipeName) })).toHaveCount(0);
+  });
 });

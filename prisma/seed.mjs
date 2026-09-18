@@ -173,8 +173,8 @@ async function main() {
   if (stockCount === 0) {
     await prisma.stock.createMany({
       data: [
-        { householdId: household.id, ingredientId: ingredients["Riz"].id, quantity: 500, unit: "g" },
-        { householdId: household.id, ingredientId: ingredients["Oeufs"].id, quantity: 6, unit: "unité" },
+        { householdId: household.id, ingredientId: ingredients["Riz"].id, quantity: 500, unit: "g", location: "PLACARD" },
+        { householdId: household.id, ingredientId: ingredients["Oeufs"].id, quantity: 6, unit: "unité", location: "FRIGO" },
       ],
     });
     console.log("2 lignes de stock créées");

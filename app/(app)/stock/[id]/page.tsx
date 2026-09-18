@@ -30,6 +30,7 @@ export default async function AdjustStockPage({ params }: { params: Promise<{ id
           ingredientId: stock.ingredientId,
           quantity: String(stock.quantity),
           unit: stock.unit,
+          location: stock.location,
           expiresAt: stock.expiresAt ? toDateInputValue(stock.expiresAt) : '',
         }}
       />

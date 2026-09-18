@@ -62,6 +62,7 @@ test.describe('Suggestions de recettes', () => {
     await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: coveredIngredientName });
     await page.getByLabel('Quantité').fill('500');
     await page.getByLabel('Unité').fill('g');
+    await page.getByLabel('Emplacement').selectOption('PLACARD');
     await page.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page).toHaveURL(/\/stock$/);
 

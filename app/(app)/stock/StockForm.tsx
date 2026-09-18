@@ -4,7 +4,7 @@ import type { ConservationDuree } from '@prisma/client';
 import { useActionState, useState } from 'react';
 import { Button, SelectField, TextField } from '@/components/ui';
 import { estimateExpiryDate } from '@/lib/stock/expiry';
-import { toDateInputValue } from '@/lib/stock/mapping';
+import { LOCATION_LABELS, LOCATION_ORDER, toDateInputValue } from '@/lib/stock/mapping';
 import type { StockFormValues } from '@/lib/stock/validation';
 import type { StockActionState } from './actions';
 
@@ -91,6 +91,22 @@ export function StockForm({
         error={errors?.unit}
         placeholder="g, L, pièce…"
       />
+      <SelectField
+        label="Emplacement"
+        name="location"
+        required
+        defaultValue={values?.location ?? ''}
+        error={errors?.location}
+      >
+        <option value="" disabled>
+          Choisir…
+        </option>
+        {LOCATION_ORDER.map((location) => (
+          <option key={location} value={location}>
+            {LOCATION_LABELS[location]}
+          </option>
+        ))}
+      </SelectField>
       <TextField
         label="Date de péremption"
         name="expiresAt"

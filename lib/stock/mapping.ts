@@ -1,4 +1,4 @@
-import { ConservationDuree, type Ingredient, type Stock } from '@prisma/client';
+import { ConservationDuree, StockLocation, type Ingredient, type Stock } from '@prisma/client';
 import type { IconName } from '@/components/ui';
 import { toIngredientViewModel } from '@/lib/ingredients/mapping';
 import type { StockFormValues } from './validation';
@@ -9,9 +9,36 @@ export function parseStockFormData(formData: FormData): StockFormValues {
     ingredientId: String(formData.get('ingredientId') ?? ''),
     quantity: String(formData.get('quantity') ?? ''),
     unit: String(formData.get('unit') ?? ''),
+    location: String(formData.get('location') ?? ''),
     expiresAt: String(formData.get('expiresAt') ?? ''),
   };
 }
+
+// Ordre d'affichage des sections de la page Stock, indépendant de l'ordre de
+// l'enum Prisma — du plus froid au plus sec.
+export const LOCATION_ORDER: StockLocation[] = [
+  StockLocation.FRIGO,
+  StockLocation.CONGELATEUR,
+  StockLocation.PLACARD,
+  StockLocation.SALLE_DE_BAIN,
+  StockLocation.AUTRE,
+];
+
+export const LOCATION_LABELS: Record<StockLocation, string> = {
+  FRIGO: 'Frigo',
+  CONGELATEUR: 'Congélateur',
+  PLACARD: 'Placard',
+  SALLE_DE_BAIN: 'Salle de bain',
+  AUTRE: 'Autre',
+};
+
+export const LOCATION_ICONS: Record<StockLocation, IconName> = {
+  FRIGO: 'Refrigerator',
+  CONGELATEUR: 'Snowflake',
+  PLACARD: 'Archive',
+  SALLE_DE_BAIN: 'Bath',
+  AUTRE: 'Package',
+};
 
 /** Formate une Date en valeur `yyyy-mm-dd` pour pré-remplir un <input type="date"> — en heure locale, pas UTC. */
 export function toDateInputValue(date: Date): string {
@@ -60,6 +87,8 @@ export type StockViewModel = {
   quantityLabel: string;
   conservationLabel: string;
   urgencyTone: UrgencyTone;
+  location: StockLocation;
+  locationLabel: string;
   expiresAt: Date;
   expiryLabel: string;
 };
@@ -78,7 +107,37 @@ export function toStockViewModel(stock: Stock & { ingredient: Ingredient }, now:
     quantityLabel: `${stock.quantity} ${stock.unit}`,
     conservationLabel: ingredientViewModel.conservationLabel,
     urgencyTone: URGENCY_TONE[stock.ingredient.conservation],
+    location: stock.location,
+    locationLabel: LOCATION_LABELS[stock.location],
     expiresAt,
     expiryLabel: formatExpiryLabel(expiresAt, now),
   };
+}
+
+export type StockLocationGroup = {
+  location: StockLocation;
+  label: string;
+  icon: IconName;
+  items: StockViewModel[];
+};
+
+/**
+ * Groupe les entrées de stock par emplacement (frigo, congélateur, placard…),
+ * dans l'ordre imposé par `LOCATION_ORDER`, en conservant l'ordre des items
+ * au sein de chaque groupe (déjà trié par urgence de péremption en amont).
+ */
+export function groupStockByLocation(items: StockViewModel[]): StockLocationGroup[] {
+  const byLocation = new Map<StockLocation, StockViewModel[]>();
+  for (const item of items) {
+    const group = byLocation.get(item.location) ?? [];
+    group.push(item);
+    byLocation.set(item.location, group);
+  }
+
+  return LOCATION_ORDER.filter((location) => byLocation.has(location)).map((location) => ({
+    location,
+    label: LOCATION_LABELS[location],
+    icon: LOCATION_ICONS[location],
+    items: byLocation.get(location)!,
+  }));
 }

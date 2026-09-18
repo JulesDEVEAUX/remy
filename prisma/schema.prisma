@@ -41,6 +41,14 @@ enum TypeRepas {
   COLLATION
 }
 
+enum StockLocation {
+  FRIGO
+  CONGELATEUR
+  PLACARD
+  SALLE_DE_BAIN
+  AUTRE
+}
+
 model Household {
   id String @id @default(cuid())
 
@@ -200,16 +208,21 @@ model RecipeComment {
 }
 
 model Stock {
-  id           String     @id @default(cuid())
+  id           String        @id @default(cuid())
   householdId  String
-  household    Household  @relation(fields: [householdId], references: [id])
+  household    Household     @relation(fields: [householdId], references: [id])
   ingredientId String
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient    @relation(fields: [ingredientId], references: [id])
   quantity     Float
   unit         String
+  // Pièce du foyer où l'entrée est rangée (frigo, congélateur, placard, salle
+  // de bain…), pour séparer le stock par lieu de rangement plutôt qu'une liste
+  // unique (issue #72). Default DB uniquement pour les lignes déjà en base
+  // avant cette migration.
+  location     StockLocation @default(AUTRE)
   expiresAt    DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 // Une liste de courses nommée au sein d'un foyer (ex. "Courses de la semaine",

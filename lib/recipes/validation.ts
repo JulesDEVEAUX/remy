@@ -1,4 +1,5 @@
 import { Saison } from '@prisma/client';
+import { isSingleEmoji } from '@/lib/emoji';
 
 const NAME_MAX_LENGTH = 120;
 const SOURCE_URL_MAX_LENGTH = 500;
@@ -24,6 +25,7 @@ export type RecipeFormValues = {
   tags: string;
   ingredientRows: RecipeIngredientRowInput[];
   isPrivate: boolean;
+  emoji: string;
 };
 
 export type RecipeIngredientInput = {
@@ -41,10 +43,12 @@ export type RecipeInput = {
   tags: string[];
   ingredients: RecipeIngredientInput[];
   isPrivate: boolean;
+  /** null = laissé vide, un emoji sera tiré au hasard par l'appelant (cf. lib/emoji.ts). */
+  emoji: string | null;
 };
 
 export type RecipeFieldErrors = Partial<
-  Record<'name' | 'sourceUrl' | 'instructions' | 'prepMinutes' | 'seasons' | 'tags' | 'ingredients', string>
+  Record<'name' | 'sourceUrl' | 'instructions' | 'prepMinutes' | 'seasons' | 'tags' | 'ingredients' | 'emoji', string>
 >;
 
 export type RecipeValidationResult = { ok: true; data: RecipeInput } | { ok: false; errors: RecipeFieldErrors };
@@ -175,13 +179,33 @@ export function validateRecipeInput(
     errors.ingredients = 'Ajoute au moins un ingrédient.';
   }
 
+  const rawEmoji = values.emoji.trim();
+  let emoji: string | null = null;
+  if (rawEmoji) {
+    if (!isSingleEmoji(rawEmoji)) {
+      errors.emoji = 'Choisis un unique emoji.';
+    } else {
+      emoji = rawEmoji;
+    }
+  }
+
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
 
   return {
     ok: true,
-    data: { name, sourceUrl, instructions, prepMinutes, seasons, tags, ingredients, isPrivate: values.isPrivate },
+    data: {
+      name,
+      sourceUrl,
+      instructions,
+      prepMinutes,
+      seasons,
+      tags,
+      ingredients,
+      isPrivate: values.isPrivate,
+      emoji,
+    },
   };
 }
 

@@ -3,6 +3,7 @@
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { pickRandomEmoji } from '@/lib/emoji';
 import { getCurrentHousehold } from '@/lib/household';
 import { parseIngredientFormData } from '@/lib/ingredients/mapping';
 import { safeRedirectTarget } from '@/lib/navigation';
@@ -29,7 +30,9 @@ export async function createIngredientAction(
   }
 
   try {
-    await prisma.ingredient.create({ data: { ...result.data, householdId: household.id } });
+    await prisma.ingredient.create({
+      data: { ...result.data, emoji: result.data.emoji ?? pickRandomEmoji(), householdId: household.id },
+    });
   } catch (error) {
     if (isDuplicateNameError(error)) {
       return { errors: { name: 'Un ingrédient porte déjà ce nom.' }, values };
@@ -57,7 +60,7 @@ export async function updateIngredientAction(
   try {
     await prisma.ingredient.updateMany({
       where: { id, householdId: household.id },
-      data: result.data,
+      data: { ...result.data, emoji: result.data.emoji ?? pickRandomEmoji() },
     });
   } catch (error) {
     if (isDuplicateNameError(error)) {

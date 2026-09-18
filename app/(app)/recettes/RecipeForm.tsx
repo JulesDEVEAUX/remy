@@ -1,7 +1,17 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { Button, CheckboxField, Icon, IconButton, SelectField, Tag, TextField, TextareaField } from '@/components/ui';
+import {
+  Button,
+  CheckboxField,
+  EmojiField,
+  Icon,
+  IconButton,
+  SelectField,
+  Tag,
+  TextField,
+  TextareaField,
+} from '@/components/ui';
 import type { RecipeFormValues } from '@/lib/recipes/validation';
 import type { RecipeActionState } from './actions';
 
@@ -34,6 +44,7 @@ export function RecipeForm({
   submitLabel,
   ingredientOptions,
   redirectTo,
+  randomEmoji,
 }: {
   action: (state: RecipeActionState, formData: FormData) => Promise<RecipeActionState>;
   defaultValues?: RecipeFormValues;
@@ -41,9 +52,12 @@ export function RecipeForm({
   ingredientOptions: IngredientOption[];
   /** Page vers laquelle revenir après l'ajout — sinon la liste des recettes. */
   redirectTo?: string;
+  /** Emoji tiré au hasard côté serveur (cf. lib/emoji.ts) pour préremplir une nouvelle recette. */
+  randomEmoji?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const values = state?.values ?? defaultValues;
+  const [emoji, setEmoji] = useState(values?.emoji ?? randomEmoji ?? '');
   const errors = state?.errors;
 
   const [rows, setRows] = useState<Row[]>(() => {
@@ -81,6 +95,7 @@ export function RecipeForm({
         error={errors?.name}
         placeholder="Curry de lentilles"
       />
+      <EmojiField name="emoji" value={emoji} onChange={setEmoji} error={errors?.emoji} />
       <TextField
         label="Lien source"
         name="sourceUrl"

@@ -12,6 +12,7 @@ function makeIngredient(overrides: Partial<Ingredient> = {}): Ingredient {
     conservation: ConservationDuree.COURTE,
     defaultSource: SourceAchat.MARCHE,
     isPrivate: false,
+    emoji: '🥕',
     kcalPer100g: null,
     proteinPer100g: null,
     carbsPer100g: null,

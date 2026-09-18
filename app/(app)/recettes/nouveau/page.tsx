@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/ui';
+import { pickRandomEmoji } from '@/lib/emoji';
 import { getCurrentHousehold } from '@/lib/household';
 import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { safeRedirectTarget } from '@/lib/navigation';
@@ -30,6 +31,7 @@ export default async function NewRecipePage({
           defaultUnit: ingredient.defaultUnit,
         }))}
         redirectTo={backHref}
+        randomEmoji={pickRandomEmoji()}
       />
     </main>
   );

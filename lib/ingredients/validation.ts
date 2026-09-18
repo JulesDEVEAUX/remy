@@ -1,4 +1,5 @@
 import { ConservationDuree, IngredientCategory, SourceAchat } from '@prisma/client';
+import { isSingleEmoji } from '@/lib/emoji';
 import { UNIT_VALUES } from './units';
 
 const NAME_MAX_LENGTH = 80;
@@ -10,6 +11,7 @@ export type IngredientFormValues = {
   conservation: string;
   defaultSource: string;
   isPrivate: boolean;
+  emoji: string;
 };
 
 export type IngredientInput = {
@@ -19,6 +21,8 @@ export type IngredientInput = {
   conservation: ConservationDuree;
   defaultSource: SourceAchat;
   isPrivate: boolean;
+  /** null = laissé vide, un emoji sera tiré au hasard par l'appelant (cf. lib/emoji.ts). */
+  emoji: string | null;
 };
 
 export type IngredientFieldErrors = Partial<Record<keyof IngredientFormValues, string>>;
@@ -71,6 +75,16 @@ export function validateIngredientInput(values: IngredientFormValues): Ingredien
     errors.defaultSource = "Choisis une source d'achat valide.";
   }
 
+  const rawEmoji = values.emoji.trim();
+  let emoji: string | null = null;
+  if (rawEmoji) {
+    if (!isSingleEmoji(rawEmoji)) {
+      errors.emoji = 'Choisis un unique emoji.';
+    } else {
+      emoji = rawEmoji;
+    }
+  }
+
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
@@ -84,6 +98,7 @@ export function validateIngredientInput(values: IngredientFormValues): Ingredien
       conservation: values.conservation as ConservationDuree,
       defaultSource: values.defaultSource as SourceAchat,
       isPrivate: values.isPrivate,
+      emoji,
     },
   };
 }

@@ -9,6 +9,7 @@ const validValues: IngredientFormValues = {
   conservation: 'LONGUE',
   defaultSource: 'CARREFOUR',
   isPrivate: false,
+  emoji: '🌾',
 };
 
 describe('validateIngredientInput', () => {
@@ -28,6 +29,7 @@ describe('validateIngredientInput', () => {
         conservation: 'LONGUE',
         defaultSource: 'CARREFOUR',
         isPrivate: false,
+        emoji: '🌾',
       },
     });
   });
@@ -100,6 +102,22 @@ describe('validateIngredientInput', () => {
     }
   });
 
+  it('leaves emoji null when left blank, to be assigned at random by the caller', () => {
+    const result = validateIngredientInput({ ...validValues, emoji: '  ' });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.emoji).toBeNull();
+    }
+  });
+
+  it('rejects a value that is not a single emoji', () => {
+    const result = validateIngredientInput({ ...validValues, emoji: 'abc' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.emoji).toBeDefined();
+    }
+  });
+
   it('reports every invalid field at once', () => {
     const result = validateIngredientInput({
       name: '',
@@ -108,6 +126,7 @@ describe('validateIngredientInput', () => {
       conservation: '',
       defaultSource: '',
       isPrivate: false,
+      emoji: '',
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {

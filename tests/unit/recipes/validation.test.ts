@@ -17,6 +17,7 @@ const validValues: RecipeFormValues = {
   tags: 'rapide, végétarien',
   ingredientRows: [{ ingredientId: 'ing_1', quantity: '200', unit: 'g' }],
   isPrivate: false,
+  emoji: '🍛',
 };
 
 describe('validateRecipeInput', () => {
@@ -37,6 +38,7 @@ describe('validateRecipeInput', () => {
         tags: ['rapide', 'végétarien'],
         ingredients: [{ ingredientId: 'ing_1', quantity: 200, unit: 'g' }],
         isPrivate: false,
+        emoji: '🍛',
       },
     });
   });
@@ -51,7 +53,7 @@ describe('validateRecipeInput', () => {
 
   it('accepts optional fields left empty', () => {
     const result = validateRecipeInput(
-      { ...validValues, sourceUrl: '', prepMinutes: '', seasons: [], tags: '' },
+      { ...validValues, sourceUrl: '', prepMinutes: '', seasons: [], tags: '', emoji: '' },
       validIngredientIds,
     );
     expect(result.ok).toBe(true);
@@ -60,6 +62,15 @@ describe('validateRecipeInput', () => {
       expect(result.data.prepMinutes).toBeNull();
       expect(result.data.seasons).toEqual([]);
       expect(result.data.tags).toEqual([]);
+      expect(result.data.emoji).toBeNull();
+    }
+  });
+
+  it('rejects a value that is not a single emoji', () => {
+    const result = validateRecipeInput({ ...validValues, emoji: 'pas un emoji' }, validIngredientIds);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.emoji).toBeDefined();
     }
   });
 

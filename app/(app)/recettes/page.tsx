@@ -58,7 +58,7 @@ export default async function RecettesPage() {
               <ListRow
                 key={viewModel.id}
                 href={`/recettes/${viewModel.id}`}
-                icon="ChefHat"
+                emoji={viewModel.emoji}
                 label={viewModel.name}
                 meta={meta}
                 tag={viewModel.seasonLabels[0] ? <Tag tone="saison">{viewModel.seasonLabels[0]}</Tag> : undefined}
@@ -79,7 +79,7 @@ export default async function RecettesPage() {
               <ListRow
                 key={viewModel.id}
                 href={`/recettes/${viewModel.id}`}
-                icon="ChefHat"
+                emoji={viewModel.emoji}
                 label={viewModel.name}
                 tag={<Tag tone="neutre">Public</Tag>}
               />

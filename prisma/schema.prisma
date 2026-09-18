@@ -56,6 +56,7 @@ model Household {
   stock             Stock[]
   shoppingListItems ShoppingListItem[]
   mealPlans         MealPlan[]
+  householdNeeds    HouseholdNeed[]
 }
 
 model Person {
@@ -104,6 +105,7 @@ model Ingredient {
   recipeIngredients RecipeIngredient[]
   stock             Stock[]
   shoppingListItems ShoppingListItem[]
+  householdNeeds    HouseholdNeed[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -189,6 +191,23 @@ model MealPlan {
   createdAt    DateTime           @default(now())
 
   @@unique([householdId, date, mealType])
+}
+
+// Besoin récurrent du foyer non lié à une recette (huile, produits ménagers,
+// hygiène…) : consommation mensuelle moyenne, convertie en besoin hebdo lors
+// de la génération de la liste de courses (cf. lib/household-needs/quantity.ts).
+model HouseholdNeed {
+  id              String     @id @default(cuid())
+  householdId     String
+  household       Household  @relation(fields: [householdId], references: [id])
+  ingredientId    String
+  ingredient      Ingredient @relation(fields: [ingredientId], references: [id])
+  monthlyQuantity Float
+  unit            String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([householdId, ingredientId])
 }
 
 model MealPlanPerson {

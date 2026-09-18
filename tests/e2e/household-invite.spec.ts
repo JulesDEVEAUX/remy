@@ -19,9 +19,17 @@ test.describe('Inviter un compte sur son foyer', () => {
     await signInAsTestUser(page, hostEmail);
     await page.goto('/parametres');
 
-    await page.getByRole('button', { name: /code d'invitation|Régénérer/ }).click();
     const codeLocator = page.getByText(/^[A-Z0-9]{8}$/);
+    // Sur un foyer déjà invité par un run précédent, un code est déjà affiché avant même
+    // le clic : "toBeVisible" seul ne suffit pas à attendre la régénération (l'élément est
+    // déjà visible, il ne fait que changer de texte) — on attend explicitement que le texte
+    // diffère de la valeur précédente plutôt que sa simple présence.
+    const previousCode = (await codeLocator.count()) > 0 ? await codeLocator.innerText() : null;
+    await page.getByRole('button', { name: /code d'invitation|Régénérer/ }).click();
     await expect(codeLocator).toBeVisible();
+    if (previousCode) {
+      await expect(codeLocator).not.toHaveText(previousCode);
+    }
     const inviteCode = await codeLocator.innerText();
 
     const runId = Date.now();

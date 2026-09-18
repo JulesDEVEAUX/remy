@@ -24,7 +24,7 @@ test.describe('Catalogue partagé d’ingrédients et de recettes entre foyers',
     await page.goto('/ingredients/nouveau');
     await page.getByLabel('Nom').fill(ingredientName);
     await page.getByLabel('Catégorie').selectOption('EPICERIE');
-    await page.getByLabel('Unité par défaut').fill('g');
+    await page.getByLabel('Unité par défaut').selectOption('g');
     await page.getByLabel('Durée de conservation').selectOption('LONGUE');
     await page.getByLabel("Source d'achat").selectOption('MARCHE');
     await expect(page.getByLabel('Ingrédient privé')).not.toBeChecked();
@@ -55,11 +55,11 @@ test.describe('Catalogue partagé d’ingrédients et de recettes entre foyers',
 
     await expect(page).toHaveURL(/\/recettes\//);
     await expect(page.getByText('Public', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Enregistrer' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Enregistrer', exact: true })).not.toBeVisible();
     await page.getByRole('button', { name: 'Ajouter à mon foyer' }).click();
 
     // La recette clonée appartient maintenant au foyer B : édition complète disponible.
-    await expect(page.getByRole('button', { name: 'Enregistrer' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Enregistrer', exact: true })).toBeVisible();
 
     await page.goto('/recettes');
     await expect(page.getByRole('link', { name: new RegExp(recipeName) })).toHaveCount(2);

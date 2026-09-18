@@ -20,7 +20,7 @@ test.describe('Besoins récurrents du foyer', () => {
     await page.goto('/ingredients/nouveau');
     await page.getByLabel('Nom').fill(ingredientName);
     await page.getByLabel('Catégorie').selectOption('EPICERIE');
-    await page.getByLabel('Unité par défaut').fill('L');
+    await page.getByLabel('Unité par défaut').selectOption('L');
     await page.getByLabel('Durée de conservation').selectOption('LONGUE');
     await page.getByLabel("Source d'achat").selectOption('MARCHE');
     await page.getByRole('button', { name: 'Ajouter' }).click();
@@ -28,10 +28,11 @@ test.describe('Besoins récurrents du foyer', () => {
 
     await page.goto('/parametres');
     // 30,4375 j/mois (moyenne) : donne un équivalent hebdo rond de 7 L, simple à vérifier.
-    await page.getByLabel('Produit').selectOption({ label: ingredientName });
-    await page.getByLabel('Quantité / mois').fill('30.4375');
-    await page.getByLabel('Unité', { exact: true }).fill('L');
-    await page.getByRole('button', { name: 'Ajouter' }).click();
+    const needForm = page.locator('form').filter({ has: page.getByLabel('Quantité / mois') });
+    await needForm.getByLabel('Produit').selectOption({ label: ingredientName });
+    await needForm.getByLabel('Quantité / mois').fill('30.4375');
+    await needForm.getByLabel('Unité', { exact: true }).fill('L');
+    await needForm.getByRole('button', { name: 'Ajouter' }).click();
 
     const needRow = page.getByText(ingredientName, { exact: true }).locator('..');
     await expect(needRow).toContainText('30.4375 L / mois');

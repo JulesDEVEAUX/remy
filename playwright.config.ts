@@ -10,7 +10,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: `http://localhost:${process.env.PORT ?? 3000}`,
     trace: "on-first-retry",
   },
   webServer: {
@@ -18,10 +18,10 @@ export default defineConfig({
     // workers Playwright sur le runner CI (streams SSR qui se coupent, redirections
     // post-mutation qui n'aboutissent pas à temps) — un build de prod n'a pas ce
     // problème. En local, reuseExistingServer réutilise le `pnpm dev` déjà lancé.
-    command: process.env.CI ? "pnpm build && pnpm start" : "pnpm dev",
-    url: "http://localhost:3000",
+    command: process.env.CI || process.env.PORT ? "pnpm build && pnpm start" : "pnpm dev",
+    url: `http://localhost:${process.env.PORT ?? 3000}`,
     reuseExistingServer: !process.env.CI,
-    timeout: process.env.CI ? 180_000 : undefined,
+    timeout: 180_000,
   },
   projects: [
     {

@@ -21,15 +21,16 @@ test.describe('Plusieurs listes de courses en parallèle', () => {
     await page.goto('/ingredients/nouveau');
     await page.getByLabel('Nom').fill(ingredientName);
     await page.getByLabel('Catégorie').selectOption('EPICERIE');
-    await page.getByLabel('Unité par défaut').fill('kg');
+    await page.getByLabel('Unité par défaut').selectOption('kg');
     await page.getByLabel('Durée de conservation').selectOption('LONGUE');
     await page.getByLabel("Source d'achat").selectOption('CARREFOUR');
     await page.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page).toHaveURL(/\/ingredients$/);
 
     // La première visite crée implicitement la liste par défaut "Courses".
+    // Scopé à <main> : la barre de nav du bas porte aussi un lien "Courses".
     await page.goto('/courses');
-    await expect(page.getByRole('link', { name: 'Courses', exact: true })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('link', { name: 'Courses', exact: true })).toBeVisible();
 
     await page.getByLabel('Nouvelle liste').fill(secondListName);
     await page.getByRole('button', { name: 'Créer' }).click();
@@ -47,7 +48,7 @@ test.describe('Plusieurs listes de courses en parallèle', () => {
     await expect(itemRow).toContainText('2 kg');
 
     // Bascule vers la liste par défaut : l'article ajouté à l'autre liste n'y apparaît pas.
-    await page.getByRole('link', { name: 'Courses', exact: true }).click();
+    await page.getByRole('main').getByRole('link', { name: 'Courses', exact: true }).click();
     await expect(page).toHaveURL(/\/courses\?listId=/);
     await expect(page.getByRole('button', { name: new RegExp(ingredientName) })).not.toBeVisible();
 

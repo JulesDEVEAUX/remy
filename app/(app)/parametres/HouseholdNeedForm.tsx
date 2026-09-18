@@ -2,18 +2,16 @@
 
 import { useActionState } from 'react';
 import { Button, SelectField, TextField } from '@/components/ui';
-import type { ShoppingItemActionState } from './actions';
+import type { CreateHouseholdNeedState } from './actions';
 
 type IngredientOption = { id: string; name: string };
 
-export function ShoppingItemForm({
+export function HouseholdNeedForm({
   action,
   ingredientOptions,
-  shoppingListId,
 }: {
-  action: (state: ShoppingItemActionState, formData: FormData) => Promise<ShoppingItemActionState>;
+  action: (state: CreateHouseholdNeedState, formData: FormData) => Promise<CreateHouseholdNeedState>;
   ingredientOptions: IngredientOption[];
-  shoppingListId: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const values = state?.values;
@@ -21,20 +19,16 @@ export function ShoppingItemForm({
 
   if (ingredientOptions.length === 0) {
     return (
-      <p className="mb-8 font-sans text-[13px] text-clay-700 dark:text-clay-400">
-        Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord pour pouvoir compléter la liste.
+      <p className="font-sans text-[13px] text-clay-700 dark:text-clay-400">
+        Aucun ingrédient au catalogue. Ajoute-en un d&apos;abord pour déclarer un besoin récurrent.
       </p>
     );
   }
 
   return (
-    <form action={formAction} className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800">
-      <input type="hidden" name="shoppingListId" value={shoppingListId} />
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
-        Ajouter un article
-      </span>
+    <form action={formAction} className="flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800">
       <SelectField
-        label="Ingrédient"
+        label="Produit"
         name="ingredientId"
         required
         defaultValue={values?.ingredientId ?? ''}
@@ -52,15 +46,15 @@ export function ShoppingItemForm({
       <div className="flex gap-2">
         <div className="flex-1">
           <TextField
-            label="Quantité"
-            name="quantity"
+            label="Quantité / mois"
+            name="monthlyQuantity"
             type="number"
             min={0}
             step="any"
             required
-            defaultValue={values?.quantity}
-            error={errors?.quantity}
-            placeholder="500"
+            defaultValue={values?.monthlyQuantity}
+            error={errors?.monthlyQuantity}
+            placeholder="1"
           />
         </div>
         <div className="flex-1">
@@ -71,7 +65,7 @@ export function ShoppingItemForm({
             maxLength={20}
             defaultValue={values?.unit}
             error={errors?.unit}
-            placeholder="g, L, pièce…"
+            placeholder="L, pièce…"
           />
         </div>
       </div>

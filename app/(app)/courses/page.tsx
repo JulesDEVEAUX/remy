@@ -1,19 +1,49 @@
-import { Button, EmptyState, ICONS, PageHeader, RayonGroup } from '@/components/ui';
+import Link from 'next/link';
+import { Button, EmptyState, Icon, ICONS, IconButton, PageHeader, RayonGroup, Tag } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { startOfDay } from '@/lib/planning/dates';
 import { groupShoppingItems, selectPlannedRecipeOccurrences } from '@/lib/shopping/mapping';
 import { prisma } from '@/lib/prisma';
-import { addShoppingItemAction, clearCheckedItemsAction, generateShoppingListAction } from './actions';
+import {
+  addShoppingItemAction,
+  clearCheckedItemsAction,
+  deleteShoppingListAction,
+  generateShoppingListAction,
+} from './actions';
 import { ShoppingItemForm } from './ShoppingItemForm';
 import { ShoppingItemRow } from './ShoppingItemRow';
+import { ShoppingListForm } from './ShoppingListForm';
 
-export default async function CoursesPage() {
+/** Garantit qu'un foyer a toujours au moins une liste de courses à afficher. */
+async function ensureDefaultShoppingList(householdId: string) {
+  return prisma.shoppingList.upsert({
+    where: { householdId_name: { householdId, name: 'Courses' } },
+    update: {},
+    create: { householdId, name: 'Courses' },
+  });
+}
+
+export default async function CoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ listId?: string }>;
+}) {
+  const { listId } = await searchParams;
   const household = await getCurrentHousehold();
 
-  const [items, upcomingMealPlans, ingredients] = await Promise.all([
+  const lists = await prisma.shoppingList.findMany({
+    where: { householdId: household.id },
+    orderBy: { createdAt: 'asc' },
+  });
+  const currentList = lists.find((list) => list.id === listId) ?? lists[0] ?? (await ensureDefaultShoppingList(household.id));
+  if (lists.length === 0) {
+    lists.push(currentList);
+  }
+
+  const [items, upcomingMealPlans, ingredients, householdNeedsCount] = await Promise.all([
     prisma.shoppingListItem.findMany({
-      where: { householdId: household.id },
+      where: { householdId: household.id, shoppingListId: currentList.id },
       include: { ingredient: true },
       orderBy: { createdAt: 'asc' },
     }),
@@ -26,6 +56,7 @@ export default async function CoursesPage() {
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
+    prisma.householdNeed.count({ where: { householdId: household.id } }),
   ]);
 
   const sections = groupShoppingItems(items);
@@ -48,42 +79,72 @@ export default async function CoursesPage() {
   return (
     <main className="p-6 pb-32">
       <PageHeader title="Courses" />
-      <p className="-mt-4 mb-6 font-mono text-[12px] text-clay-600 dark:text-clay-400">
-        {remaining} article{remaining !== 1 ? 's' : ''} restant{remaining !== 1 ? 's' : ''}
-      </p>
 
-      {plannedMeals.length > 0 && (
-        <form action={generateShoppingListAction} className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {lists.map((list) => (
+          <Link key={list.id} href={`/courses?listId=${list.id}`}>
+            <Tag tone={list.id === currentList.id ? 'saison' : 'neutre'}>{list.name}</Tag>
+          </Link>
+        ))}
+      </div>
+      <div className="mb-6 flex items-end justify-between gap-3">
+        <p className="font-mono text-[12px] text-clay-600 dark:text-clay-400">
+          {remaining} article{remaining !== 1 ? 's' : ''} restant{remaining !== 1 ? 's' : ''}
+        </p>
+        {lists.length > 1 && (
+          <form action={deleteShoppingListAction.bind(null, currentList.id)}>
+            <IconButton type="submit" aria-label={`Supprimer la liste ${currentList.name}`}>
+              <Icon name="Trash" size={18} />
+            </IconButton>
+          </form>
+        )}
+      </div>
+      <div className="mb-8">
+        <ShoppingListForm key={lists.length} />
+      </div>
+
+      {(plannedMeals.length > 0 || householdNeedsCount > 0) && (
+        <form
+          action={generateShoppingListAction.bind(null, currentList.id)}
+          className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800"
+        >
           <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
-            Générer depuis mon planning
+            Générer depuis mon planning — liste « {currentList.name} »
           </span>
-          <div className="flex flex-col gap-1.5">
-            {plannedMeals.map((meal) => (
-              <div
-                key={meal.recipeId}
-                className="flex min-h-[44px] items-center gap-3 rounded-md bg-cream px-4 dark:bg-ink"
-              >
-                <span className="font-sans text-[14px] font-semibold text-ink dark:text-cream">{meal.name}</span>
-                {meal.count > 1 && (
-                  <span className="ml-auto font-mono text-[12px] text-clay-600 dark:text-clay-400">
-                    ×{meal.count}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          {plannedMeals.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              {plannedMeals.map((meal) => (
+                <div
+                  key={meal.recipeId}
+                  className="flex min-h-[44px] items-center gap-3 rounded-md bg-cream px-4 dark:bg-ink"
+                >
+                  <span className="font-sans text-[14px] font-semibold text-ink dark:text-cream">{meal.name}</span>
+                  {meal.count > 1 && (
+                    <span className="ml-auto font-mono text-[12px] text-clay-600 dark:text-clay-400">
+                      ×{meal.count}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {householdNeedsCount > 0 && (
+            <p className="font-sans text-[12px] text-clay-700 dark:text-clay-400">
+              Inclut aussi tes besoins récurrents du foyer (huile, produits ménagers…).
+            </p>
+          )}
           <Button type="submit" variant="secondary" block>
             Générer la liste
           </Button>
         </form>
       )}
 
-      <ShoppingItemForm action={addShoppingItemAction} ingredientOptions={ingredients} />
+      <ShoppingItemForm action={addShoppingItemAction} ingredientOptions={ingredients} shoppingListId={currentList.id} />
 
       {items.length === 0 ? (
         <EmptyState
           icon={ICONS.courses}
-          title="Rien à acheter pour l'instant."
+          title="Rien à acheter pour l'instant dans cette liste."
           description="Planifie des repas pour générer la liste ci-dessus, ou ajoute un article manuellement."
         />
       ) : (
@@ -113,7 +174,7 @@ export default async function CoursesPage() {
           )}
 
           {hasChecked && (
-            <form action={clearCheckedItemsAction}>
+            <form action={clearCheckedItemsAction.bind(null, currentList.id)}>
               <Button type="submit" variant="secondary" block>
                 Vider les cochés
               </Button>

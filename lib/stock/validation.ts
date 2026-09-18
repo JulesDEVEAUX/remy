@@ -1,9 +1,12 @@
+import { StockLocation } from '@prisma/client';
+
 const UNIT_MAX_LENGTH = 20;
 
 export type StockFormValues = {
   ingredientId: string;
   quantity: string;
   unit: string;
+  location: string;
   expiresAt: string;
 };
 
@@ -11,6 +14,7 @@ export type StockInput = {
   ingredientId: string;
   quantity: number;
   unit: string;
+  location: StockLocation;
   /** null = non renseigné à la saisie ; l'appelant calcule alors une estimation. */
   expiresAt: Date | null;
 };
@@ -57,6 +61,11 @@ export function validateStockInput(
     errors.unit = `L'unité dépasse ${UNIT_MAX_LENGTH} caractères.`;
   }
 
+  const location = values.location.trim();
+  if (!Object.values(StockLocation).includes(location as StockLocation)) {
+    errors.location = 'Choisis un emplacement.';
+  }
+
   let expiresAt: Date | null = null;
   const rawExpiresAt = values.expiresAt.trim();
   if (rawExpiresAt) {
@@ -72,5 +81,5 @@ export function validateStockInput(
     return { ok: false, errors };
   }
 
-  return { ok: true, data: { ingredientId, quantity, unit, expiresAt } };
+  return { ok: true, data: { ingredientId, quantity, unit, location: location as StockLocation, expiresAt } };
 }

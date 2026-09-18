@@ -37,10 +37,13 @@ test.describe('Gestion du stock', () => {
     // Stocke d'abord le produit à conservation longue, puis celui à conservation
     // courte sans date de péremption saisie : si le tri par urgence fonctionne, le
     // second (estimation plus proche) doit malgré tout apparaître avant dans la liste.
+    // Même emplacement pour les deux : la liste groupe désormais par emplacement
+    // (issue #72), ce tri par urgence ne s'observe qu'au sein d'un même groupe.
     await page.goto('/stock/nouveau');
     await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: laterName });
     await page.getByLabel('Quantité').fill('2');
     await page.getByLabel('Unité').fill('kg');
+    await page.getByLabel('Emplacement').selectOption('FRIGO');
     await page.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page).toHaveURL(/\/stock$/);
 
@@ -48,6 +51,7 @@ test.describe('Gestion du stock', () => {
     await page.getByRole('combobox', { name: 'Ingrédient' }).selectOption({ label: soonName });
     await page.getByLabel('Quantité').fill('4');
     await page.getByLabel('Unité').fill('pot');
+    await page.getByLabel('Emplacement').selectOption('FRIGO');
     await page.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page).toHaveURL(/\/stock$/);
 

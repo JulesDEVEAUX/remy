@@ -1,3 +1,4 @@
+import { StockLocation } from '@prisma/client';
 import { describe, expect, it } from 'vitest';
 import { validateStockInput, type StockFormValues } from '@/lib/stock/validation';
 
@@ -7,6 +8,7 @@ const validValues: StockFormValues = {
   ingredientId: 'ing_1',
   quantity: '500',
   unit: 'g',
+  location: StockLocation.FRIGO,
   expiresAt: '',
 };
 
@@ -15,7 +17,7 @@ describe('validateStockInput', () => {
     const result = validateStockInput(validValues, validIngredientIds);
     expect(result).toEqual({
       ok: true,
-      data: { ingredientId: 'ing_1', quantity: 500, unit: 'g', expiresAt: null },
+      data: { ingredientId: 'ing_1', quantity: 500, unit: 'g', location: StockLocation.FRIGO, expiresAt: null },
     });
   });
 
@@ -75,6 +77,22 @@ describe('validateStockInput', () => {
     }
   });
 
+  it('rejects a missing location', () => {
+    const result = validateStockInput({ ...validValues, location: '' }, validIngredientIds);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.location).toBeDefined();
+    }
+  });
+
+  it('rejects a location outside the known enum', () => {
+    const result = validateStockInput({ ...validValues, location: 'GARAGE' }, validIngredientIds);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.location).toBeDefined();
+    }
+  });
+
   it('rejects an invalid expiry date string', () => {
     const result = validateStockInput({ ...validValues, expiresAt: 'pas une date' }, validIngredientIds);
     expect(result.ok).toBe(false);
@@ -85,13 +103,13 @@ describe('validateStockInput', () => {
 
   it('reports every invalid field at once', () => {
     const result = validateStockInput(
-      { ingredientId: '', quantity: '', unit: '', expiresAt: 'nope' },
+      { ingredientId: '', quantity: '', unit: '', location: '', expiresAt: 'nope' },
       validIngredientIds,
     );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(Object.keys(result.errors).sort()).toEqual(
-        ['expiresAt', 'ingredientId', 'quantity', 'unit'].sort(),
+        ['expiresAt', 'ingredientId', 'location', 'quantity', 'unit'].sort(),
       );
     }
   });

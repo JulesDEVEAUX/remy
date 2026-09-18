@@ -44,6 +44,7 @@ export async function createStockAction(
       ingredientId: result.data.ingredientId,
       quantity: result.data.quantity,
       unit: result.data.unit,
+      location: result.data.location,
       expiresAt,
     },
   });
@@ -79,7 +80,7 @@ export async function updateStockAction(
 
   await prisma.stock.updateMany({
     where: { id, householdId: household.id },
-    data: { quantity: result.data.quantity, unit: result.data.unit, expiresAt },
+    data: { quantity: result.data.quantity, unit: result.data.unit, location: result.data.location, expiresAt },
   });
 
   revalidatePath('/stock');

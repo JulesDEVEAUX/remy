@@ -36,6 +36,7 @@ test.describe('Champs pré-remplis à partir du produit sélectionné', () => {
     const expectedExpiry = toDateInputValue(estimateExpiryDate(ConservationDuree.MOYENNE, new Date()));
     await expect(page.getByLabel('Date de péremption')).toHaveValue(expectedExpiry);
     await page.getByLabel('Quantité').fill('300');
+    await page.getByLabel('Emplacement').selectOption('PLACARD');
     await page.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page).toHaveURL(/\/stock$/);
 

@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { Button, EmptyState, ICONS, Icon, ListRow, PageHeader, Tag } from '@/components/ui';
+import { Button, EmptyState, ICONS, Icon, ListRow, PageHeader, RayonGroup, Tag } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
-import { toStockViewModel } from '@/lib/stock/mapping';
+import { groupStockByLocation, toStockViewModel } from '@/lib/stock/mapping';
 import { prisma } from '@/lib/prisma';
 
 export default async function StockPage() {
@@ -14,6 +14,7 @@ export default async function StockPage() {
 
   const now = new Date();
   const items = stockEntries.map((entry) => toStockViewModel(entry, now));
+  const groups = groupStockByLocation(items);
 
   return (
     <main className="p-6 pb-32">
@@ -45,16 +46,20 @@ export default async function StockPage() {
           }
         />
       ) : (
-        <div className="flex flex-col gap-1.5">
-          {items.map((item) => (
-            <ListRow
-              key={item.id}
-              href={`/stock/${item.id}`}
-              icon={item.ingredientIcon}
-              label={item.ingredientName}
-              meta={item.quantityLabel}
-              tag={<Tag tone={item.urgencyTone}>{item.expiryLabel}</Tag>}
-            />
+        <div className="flex flex-col gap-8">
+          {groups.map((group) => (
+            <RayonGroup key={group.location} rayon={group.label} icon={group.icon}>
+              {group.items.map((item) => (
+                <ListRow
+                  key={item.id}
+                  href={`/stock/${item.id}`}
+                  icon={item.ingredientIcon}
+                  label={item.ingredientName}
+                  meta={item.quantityLabel}
+                  tag={<Tag tone={item.urgencyTone}>{item.expiryLabel}</Tag>}
+                />
+              ))}
+            </RayonGroup>
           ))}
         </div>
       )}

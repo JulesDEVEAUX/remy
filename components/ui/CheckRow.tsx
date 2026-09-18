@@ -56,7 +56,7 @@ export function CheckRow({
       </span>
       <span
         className={clsx(
-          'font-sans text-[15px] font-semibold',
+          'min-w-0 flex-1 truncate font-sans text-[15px] font-semibold',
           checked && 'line-through',
           ink
             ? checked
@@ -72,7 +72,7 @@ export function CheckRow({
       {qty && (
         <span
           className={clsx(
-            'ml-auto font-mono text-[13px] font-medium',
+            'ml-auto max-w-[40%] shrink-0 truncate font-mono text-[13px] font-medium',
             ink ? 'text-terracotta-400' : 'text-clay-700',
           )}
         >

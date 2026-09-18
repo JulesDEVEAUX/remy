@@ -95,8 +95,12 @@ export default async function ParametresPage() {
           <div className="mb-3 flex flex-col gap-1.5">
             {needViewModels.map((need) => (
               <div key={need.id} className="flex min-h-[46px] items-center gap-3 rounded-md bg-sand px-4 dark:bg-clay-800">
-                <span className="font-sans text-[15px] font-semibold text-ink dark:text-cream">{need.ingredientName}</span>
-                <span className="ml-auto font-mono text-[12px] text-clay-600 dark:text-clay-400">{need.quantityLabel}</span>
+                <span className="min-w-0 flex-1 truncate font-sans text-[15px] font-semibold text-ink dark:text-cream">
+                  {need.ingredientName}
+                </span>
+                <span className="ml-auto max-w-[40%] shrink-0 truncate font-mono text-[12px] text-clay-600 dark:text-clay-400">
+                  {need.quantityLabel}
+                </span>
                 <form action={deleteHouseholdNeedAction.bind(null, need.id)}>
                   <IconButton type="submit" aria-label={`Retirer ${need.ingredientName} des besoins récurrents`}>
                     <Icon name="X" size={18} />

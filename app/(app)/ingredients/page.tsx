@@ -55,6 +55,7 @@ export default async function IngredientsPage() {
                   tag={
                     <>
                       {item.isPrivate && <Tag tone="neutre">Privé</Tag>}
+                      {item.subcategoryLabel && <Tag tone="neutre">{item.subcategoryLabel}</Tag>}
                       <Tag tone="neutre">{item.conservationLabel}</Tag>
                     </>
                   }

@@ -9,6 +9,7 @@ function makeIngredient(overrides: Partial<Ingredient> = {}): Ingredient {
     householdId: 'household_1',
     name: 'Farine T55',
     category: IngredientCategory.EPICERIE,
+    subcategory: null,
     defaultUnit: 'g',
     conservation: ConservationDuree.LONGUE,
     defaultSource: SourceAchat.CARREFOUR,
@@ -30,6 +31,7 @@ describe('parseIngredientFormData', () => {
     const formData = new FormData();
     formData.set('name', 'Lait');
     formData.set('category', 'FRAIS');
+    formData.set('subcategory', 'CREMERIE');
     formData.set('defaultUnit', 'L');
     formData.set('conservation', 'COURTE');
     formData.set('defaultSource', 'MARCHE');
@@ -39,6 +41,7 @@ describe('parseIngredientFormData', () => {
     expect(parseIngredientFormData(formData)).toEqual({
       name: 'Lait',
       category: 'FRAIS',
+      subcategory: 'CREMERIE',
       defaultUnit: 'L',
       conservation: 'COURTE',
       defaultSource: 'MARCHE',
@@ -51,6 +54,7 @@ describe('parseIngredientFormData', () => {
     expect(parseIngredientFormData(new FormData())).toEqual({
       name: '',
       category: '',
+      subcategory: '',
       defaultUnit: '',
       conservation: '',
       defaultSource: '',
@@ -92,5 +96,17 @@ describe('toIngredientViewModel', () => {
       const viewModel = toIngredientViewModel(makeIngredient({ defaultSource }));
       expect(viewModel.sourceLabel.length).toBeGreaterThan(0);
     }
+  });
+
+  it('leaves subcategoryLabel null when no subcategory is set', () => {
+    const viewModel = toIngredientViewModel(makeIngredient({ subcategory: null }));
+    expect(viewModel.subcategoryLabel).toBeNull();
+  });
+
+  it('produces a French label for a known subcategory', () => {
+    const viewModel = toIngredientViewModel(
+      makeIngredient({ category: IngredientCategory.FRAIS, subcategory: 'CREMERIE' }),
+    );
+    expect(viewModel.subcategoryLabel).toBe('Crèmerie (lait, beurre, fromage, yaourts)');
   });
 });

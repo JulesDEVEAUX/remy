@@ -1,5 +1,6 @@
 import { ConservationDuree, IngredientCategory, SourceAchat } from '@prisma/client';
 import { isSingleEmoji } from '@/lib/emoji';
+import { isValidSubcategory } from './subcategories';
 import { UNIT_VALUES } from './units';
 
 const NAME_MAX_LENGTH = 80;
@@ -7,6 +8,7 @@ const NAME_MAX_LENGTH = 80;
 export type IngredientFormValues = {
   name: string;
   category: string;
+  subcategory: string;
   defaultUnit: string;
   conservation: string;
   defaultSource: string;
@@ -17,6 +19,8 @@ export type IngredientFormValues = {
 export type IngredientInput = {
   name: string;
   category: IngredientCategory;
+  /** null = pas de sous-catégorie choisie (cf. issue #67, facultatif). */
+  subcategory: string | null;
   defaultUnit: string;
   conservation: ConservationDuree;
   defaultSource: SourceAchat;
@@ -62,6 +66,16 @@ export function validateIngredientInput(values: IngredientFormValues): Ingredien
     errors.category = 'Choisis une catégorie valide.';
   }
 
+  const rawSubcategory = values.subcategory.trim();
+  let subcategory: string | null = null;
+  if (rawSubcategory) {
+    if (!isIngredientCategory(values.category) || !isValidSubcategory(values.category, rawSubcategory)) {
+      errors.subcategory = 'Choisis une sous-catégorie valide pour cette catégorie.';
+    } else {
+      subcategory = rawSubcategory;
+    }
+  }
+
   const defaultUnit = values.defaultUnit.trim();
   if (!UNIT_VALUES.has(defaultUnit)) {
     errors.defaultUnit = 'Choisis une unité valide.';
@@ -94,6 +108,7 @@ export function validateIngredientInput(values: IngredientFormValues): Ingredien
     data: {
       name,
       category: values.category as IngredientCategory,
+      subcategory,
       defaultUnit,
       conservation: values.conservation as ConservationDuree,
       defaultSource: values.defaultSource as SourceAchat,

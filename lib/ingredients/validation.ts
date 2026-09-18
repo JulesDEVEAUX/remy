@@ -1,7 +1,7 @@
 import { ConservationDuree, IngredientCategory, SourceAchat } from '@prisma/client';
+import { UNIT_VALUES } from './units';
 
 const NAME_MAX_LENGTH = 80;
-const UNIT_MAX_LENGTH = 20;
 
 export type IngredientFormValues = {
   name: string;
@@ -59,10 +59,8 @@ export function validateIngredientInput(values: IngredientFormValues): Ingredien
   }
 
   const defaultUnit = values.defaultUnit.trim();
-  if (!defaultUnit) {
-    errors.defaultUnit = "L'unité par défaut est obligatoire.";
-  } else if (defaultUnit.length > UNIT_MAX_LENGTH) {
-    errors.defaultUnit = `L'unité dépasse ${UNIT_MAX_LENGTH} caractères.`;
+  if (!UNIT_VALUES.has(defaultUnit)) {
+    errors.defaultUnit = 'Choisis une unité valide.';
   }
 
   if (!isConservationDuree(values.conservation)) {

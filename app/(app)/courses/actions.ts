@@ -3,9 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { monthlyToWeeklyQuantity } from '@/lib/household-needs/quantity';
 import { startOfDay } from '@/lib/planning/dates';
 import { parseShoppingItemFormData, selectPlannedRecipeOccurrences } from '@/lib/shopping/mapping';
-import { computeResidualQuantities } from '@/lib/shopping/quantity';
+import { computeResidualQuantities, type QuantityLine } from '@/lib/shopping/quantity';
 import {
   validateShoppingItemInput,
   validateShoppingListName,
@@ -73,22 +74,31 @@ export async function addShoppingItemAction(
 
 /**
  * Génère les items manquants, dans la liste de courses choisie, à partir de
- * tous les repas planifiés à venir (aujourd'hui inclus) : additionne les
- * RecipeIngredient nécessaires pour chaque occurrence de repas (un batch
- * cooking ne compte qu'une fois même s'il couvre plusieurs créneaux, cf.
- * selectPlannedRecipeOccurrences), soustrait le stock actuel, ne crée un item
- * que pour la quantité résiduelle strictement positive.
+ * tous les repas planifiés à venir (aujourd'hui inclus) et des besoins
+ * récurrents du foyer hors recettes (huile, produits ménagers, hygiène…, cf.
+ * HouseholdNeed) : additionne les RecipeIngredient nécessaires pour chaque
+ * occurrence de repas (un batch cooking ne compte qu'une fois même s'il
+ * couvre plusieurs créneaux, cf. selectPlannedRecipeOccurrences) ainsi que
+ * l'équivalent hebdomadaire de chaque besoin récurrent, soustrait le stock
+ * actuel, ne crée un item que pour la quantité résiduelle strictement
+ * positive.
  */
 export async function generateShoppingListAction(shoppingListId: string) {
   const household = await getCurrentHousehold();
   await assertShoppingListInHousehold(household.id, shoppingListId);
 
-  const upcomingMealPlans = await prisma.mealPlan.findMany({
-    where: { householdId: household.id, date: { gte: startOfDay(new Date()) }, recipeId: { not: null } },
-    select: { recipeId: true, isBatch: true },
-  });
+  const [upcomingMealPlans, householdNeeds] = await Promise.all([
+    prisma.mealPlan.findMany({
+      where: { householdId: household.id, date: { gte: startOfDay(new Date()) }, recipeId: { not: null } },
+      select: { recipeId: true, isBatch: true },
+    }),
+    prisma.householdNeed.findMany({
+      where: { householdId: household.id },
+      select: { ingredientId: true, monthlyQuantity: true, unit: true },
+    }),
+  ]);
   const recipeOccurrences = selectPlannedRecipeOccurrences(upcomingMealPlans);
-  if (recipeOccurrences.length === 0) {
+  if (recipeOccurrences.length === 0 && householdNeeds.length === 0) {
     return;
   }
 
@@ -109,7 +119,15 @@ export async function generateShoppingListAction(shoppingListId: string) {
     list.push(ingredient);
     ingredientsByRecipe.set(ingredient.recipeId, list);
   }
-  const needed = recipeOccurrences.flatMap((recipeId) => ingredientsByRecipe.get(recipeId) ?? []);
+  const neededFromRecipes: QuantityLine[] = recipeOccurrences.flatMap(
+    (recipeId) => ingredientsByRecipe.get(recipeId) ?? [],
+  );
+  const neededFromHouseholdNeeds: QuantityLine[] = householdNeeds.map((need) => ({
+    ingredientId: need.ingredientId,
+    unit: need.unit,
+    quantity: monthlyToWeeklyQuantity(need.monthlyQuantity),
+  }));
+  const needed = [...neededFromRecipes, ...neededFromHouseholdNeeds];
 
   const residuals = computeResidualQuantities(needed, stockEntries);
   if (residuals.length === 0) {

@@ -40,7 +40,7 @@ export default async function CoursesPage({
     lists.push(currentList);
   }
 
-  const [items, upcomingMealPlans, ingredients] = await Promise.all([
+  const [items, upcomingMealPlans, ingredients, householdNeedsCount] = await Promise.all([
     prisma.shoppingListItem.findMany({
       where: { householdId: household.id, shoppingListId: currentList.id },
       include: { ingredient: true },
@@ -55,6 +55,7 @@ export default async function CoursesPage({
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
+    prisma.householdNeed.count({ where: { householdId: household.id } }),
   ]);
 
   const sections = groupShoppingItems(items);
@@ -101,7 +102,7 @@ export default async function CoursesPage({
         <ShoppingListForm key={lists.length} />
       </div>
 
-      {plannedMeals.length > 0 && (
+      {(plannedMeals.length > 0 || householdNeedsCount > 0) && (
         <form
           action={generateShoppingListAction.bind(null, currentList.id)}
           className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800"
@@ -109,21 +110,28 @@ export default async function CoursesPage({
           <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
             Générer depuis mon planning — liste « {currentList.name} »
           </span>
-          <div className="flex flex-col gap-1.5">
-            {plannedMeals.map((meal) => (
-              <div
-                key={meal.recipeId}
-                className="flex min-h-[44px] items-center gap-3 rounded-md bg-cream px-4 dark:bg-ink"
-              >
-                <span className="font-sans text-[14px] font-semibold text-ink dark:text-cream">{meal.name}</span>
-                {meal.count > 1 && (
-                  <span className="ml-auto font-mono text-[12px] text-clay-600 dark:text-clay-400">
-                    ×{meal.count}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          {plannedMeals.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              {plannedMeals.map((meal) => (
+                <div
+                  key={meal.recipeId}
+                  className="flex min-h-[44px] items-center gap-3 rounded-md bg-cream px-4 dark:bg-ink"
+                >
+                  <span className="font-sans text-[14px] font-semibold text-ink dark:text-cream">{meal.name}</span>
+                  {meal.count > 1 && (
+                    <span className="ml-auto font-mono text-[12px] text-clay-600 dark:text-clay-400">
+                      ×{meal.count}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {householdNeedsCount > 0 && (
+            <p className="font-sans text-[12px] text-clay-700 dark:text-clay-400">
+              Inclut aussi tes besoins récurrents du foyer (huile, produits ménagers…).
+            </p>
+          )}
           <Button type="submit" variant="secondary" block>
             Générer la liste
           </Button>

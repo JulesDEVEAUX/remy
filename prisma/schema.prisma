@@ -55,6 +55,7 @@ model Household {
   ingredients       Ingredient[]
   stock             Stock[]
   shoppingListItems ShoppingListItem[]
+  shoppingLists     ShoppingList[]
   mealPlans         MealPlan[]
   householdNeeds    HouseholdNeed[]
 }
@@ -164,17 +165,33 @@ model Stock {
   updatedAt    DateTime   @updatedAt
 }
 
+// Une liste de courses nommée au sein d'un foyer (ex. "Courses de la semaine",
+// "Weekend chez mes parents") : permet de préparer plusieurs listes en
+// parallèle plutôt qu'une liste unique par foyer.
+model ShoppingList {
+  id          String             @id @default(cuid())
+  householdId String
+  household   Household          @relation(fields: [householdId], references: [id])
+  name        String
+  createdAt   DateTime           @default(now())
+  items       ShoppingListItem[]
+
+  @@unique([householdId, name])
+}
+
 model ShoppingListItem {
-  id           String      @id @default(cuid())
-  householdId  String
-  household    Household   @relation(fields: [householdId], references: [id])
-  ingredientId String
-  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id])
-  quantity     Float
-  unit         String
-  source       SourceAchat
-  checked      Boolean     @default(false)
-  createdAt    DateTime    @default(now())
+  id             String       @id @default(cuid())
+  householdId    String
+  household      Household    @relation(fields: [householdId], references: [id])
+  shoppingListId String
+  shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
+  ingredientId   String
+  ingredient     Ingredient   @relation(fields: [ingredientId], references: [id])
+  quantity       Float
+  unit           String
+  source         SourceAchat
+  checked        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 }
 
 model MealPlan {

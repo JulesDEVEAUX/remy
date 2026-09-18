@@ -14,6 +14,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
     tags: ['rapide', 'végétarien'],
     personalNote: null,
     lastMadeAt: null,
+    isPrivate: false,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -47,6 +48,7 @@ describe('parseRecipeFormData', () => {
     formData.append('ingredientId[]', 'ing_2');
     formData.append('quantity[]', '2');
     formData.append('unit[]', 'pièce');
+    formData.set('isPrivate', 'on');
 
     expect(parseRecipeFormData(formData)).toEqual({
       name: 'Curry de lentilles',
@@ -59,10 +61,11 @@ describe('parseRecipeFormData', () => {
         { ingredientId: 'ing_1', quantity: '200', unit: 'g' },
         { ingredientId: 'ing_2', quantity: '2', unit: 'pièce' },
       ],
+      isPrivate: true,
     });
   });
 
-  it('defaults missing fields to empty strings and arrays instead of throwing', () => {
+  it('defaults missing fields to empty strings and arrays, and isPrivate to false, instead of throwing', () => {
     expect(parseRecipeFormData(new FormData())).toEqual({
       name: '',
       sourceUrl: '',
@@ -71,6 +74,7 @@ describe('parseRecipeFormData', () => {
       seasons: [],
       tags: '',
       ingredientRows: [],
+      isPrivate: false,
     });
   });
 });
@@ -128,6 +132,7 @@ describe('toRecipeFormValues', () => {
       seasons: ['HIVER'],
       tags: 'rapide, végétarien',
       ingredientRows: [{ ingredientId: 'ing_1', quantity: '200', unit: 'g' }],
+      isPrivate: false,
     });
   });
 

@@ -15,6 +15,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
     tags: ['rapide'],
     personalNote: null,
     lastMadeAt: null,
+    isPrivate: false,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

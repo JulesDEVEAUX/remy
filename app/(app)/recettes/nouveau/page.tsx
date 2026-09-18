@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { safeRedirectTarget } from '@/lib/navigation';
 import { prisma } from '@/lib/prisma';
 import { createRecipeAction } from '../actions';
@@ -12,7 +13,7 @@ export default async function NewRecipePage({
 }) {
   const [household, { redirectTo }] = await Promise.all([getCurrentHousehold(), searchParams]);
   const ingredients = await prisma.ingredient.findMany({
-    where: { householdId: household.id },
+    where: ingredientCatalogWhere(household.id),
     orderBy: { name: 'asc' },
   });
   const backHref = safeRedirectTarget(redirectTo, '/recettes');
@@ -23,7 +24,11 @@ export default async function NewRecipePage({
       <RecipeForm
         action={createRecipeAction}
         submitLabel="Ajouter"
-        ingredientOptions={ingredients.map((ingredient) => ({ id: ingredient.id, name: ingredient.name }))}
+        ingredientOptions={ingredients.map((ingredient) => ({
+          id: ingredient.id,
+          name: ingredient.name,
+          defaultUnit: ingredient.defaultUnit,
+        }))}
         redirectTo={backHref}
       />
     </main>

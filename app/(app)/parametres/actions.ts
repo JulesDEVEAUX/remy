@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { generateInviteCode } from '@/lib/household/invite';
 import { getCurrentHousehold, getCurrentUserId } from '@/lib/household';
+import { parseHouseholdNeedFormData } from '@/lib/household-needs/mapping';
+import { validateHouseholdNeedInput, type HouseholdNeedFieldErrors, type HouseholdNeedFormValues } from '@/lib/household-needs/validation';
 import { validateHouseholdName, validatePersonName } from '@/lib/people/validation';
 import { prisma } from '@/lib/prisma';
 import { THEME_COOKIE, type Theme } from '@/lib/theme';
@@ -108,6 +110,48 @@ export async function togglePersonIsMeAction(personId: string) {
     ]);
   }
 
+  revalidatePath('/parametres');
+}
+
+export type CreateHouseholdNeedState =
+  | { errors: HouseholdNeedFieldErrors; values: HouseholdNeedFormValues }
+  | undefined;
+
+export async function createHouseholdNeedAction(
+  _prevState: CreateHouseholdNeedState,
+  formData: FormData,
+): Promise<CreateHouseholdNeedState> {
+  const household = await getCurrentHousehold();
+  const [ingredients, existingNeeds] = await Promise.all([
+    prisma.ingredient.findMany({ where: { householdId: household.id }, select: { id: true } }),
+    prisma.householdNeed.findMany({ where: { householdId: household.id }, select: { ingredientId: true } }),
+  ]);
+
+  const values = parseHouseholdNeedFormData(formData);
+  const result = validateHouseholdNeedInput(
+    values,
+    new Set(ingredients.map((ingredient) => ingredient.id)),
+    new Set(existingNeeds.map((need) => need.ingredientId)),
+  );
+  if (!result.ok) {
+    return { errors: result.errors, values };
+  }
+
+  await prisma.householdNeed.create({
+    data: {
+      householdId: household.id,
+      ingredientId: result.data.ingredientId,
+      monthlyQuantity: result.data.monthlyQuantity,
+      unit: result.data.unit,
+    },
+  });
+
+  revalidatePath('/parametres');
+}
+
+export async function deleteHouseholdNeedAction(id: string) {
+  const household = await getCurrentHousehold();
+  await prisma.householdNeed.deleteMany({ where: { id, householdId: household.id } });
   revalidatePath('/parametres');
 }
 

@@ -79,3 +79,21 @@ export function TextareaField({
     </label>
   );
 }
+
+/** Bascule pastille booléenne (ex. « Privé ») — libellé technique mono à droite d'une case à cocher. */
+export function CheckboxField({
+  label,
+  name,
+  defaultChecked,
+}: {
+  label: string;
+  name: string;
+  defaultChecked?: boolean;
+}) {
+  return (
+    <label className="flex min-h-[48px] w-full cursor-pointer items-center gap-3 rounded-full bg-sand px-5 dark:bg-clay-800">
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="size-5 accent-terracotta" />
+      <span className={LABEL}>{label}</span>
+    </label>
+  );
+}

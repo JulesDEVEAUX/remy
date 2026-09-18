@@ -45,4 +45,36 @@ test.describe('Besoins récurrents du foyer', () => {
     await expect(generatedRow).toBeVisible();
     await expect(generatedRow).toContainText('7 L');
   });
+
+  test("un nom de produit et une unité longs ne font pas déborder la section", async ({ page }) => {
+    const email = 'e2e-household-needs-overflow@remy.test';
+    await ensureTestUserId(email);
+    await signInAsTestUser(page, email);
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    const runId = Date.now();
+    const ingredientName = `Huile d'olive extra vierge pressée à froid test ${runId}`;
+    const longUnit = 'kilogrammes-force'; // proche du maximum autorisé (20 caractères)
+
+    await page.goto('/ingredients/nouveau');
+    await page.getByLabel('Nom').fill(ingredientName);
+    await page.getByLabel('Catégorie').selectOption('EPICERIE');
+    await page.getByLabel('Unité par défaut').selectOption('L');
+    await page.getByLabel('Durée de conservation').selectOption('LONGUE');
+    await page.getByLabel("Source d'achat").selectOption('MARCHE');
+    await page.getByRole('button', { name: 'Ajouter' }).click();
+    await expect(page).toHaveURL(/\/ingredients$/);
+
+    await page.goto('/parametres');
+    const needForm = page.locator('form').filter({ has: page.getByLabel('Quantité / mois') });
+    await needForm.getByLabel('Produit').selectOption({ label: ingredientName });
+    await needForm.getByLabel('Quantité / mois').fill('12345.6789');
+    await needForm.getByLabel('Unité', { exact: true }).fill(longUnit);
+    await needForm.getByRole('button', { name: 'Ajouter' }).click();
+
+    await expect(page.getByText(ingredientName, { exact: true })).toBeVisible();
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    const viewportWidth = await page.evaluate(() => window.innerWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(viewportWidth);
+  });
 });

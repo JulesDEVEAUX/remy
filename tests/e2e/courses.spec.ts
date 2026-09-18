@@ -84,4 +84,35 @@ test.describe('Liste de courses', () => {
     await expect(page.getByRole('button', { name: new RegExp(carrefourIngredient) })).not.toBeVisible();
     await expect(page.getByRole('button', { name: new RegExp(horsCarrefourIngredient) })).toBeVisible();
   });
+
+  test("un article avec un nom et une unité longs ne fait pas déborder la liste", async ({ page }) => {
+    const email = 'e2e-courses-overflow@remy.test';
+    await ensureTestUserId(email);
+    await signInAsTestUser(page, email);
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    const runId = Date.now();
+    const ingredientName = `Farine de blé complète type 150 bio test ${runId}`;
+
+    await page.goto('/ingredients/nouveau');
+    await page.getByLabel('Nom').fill(ingredientName);
+    await page.getByLabel('Catégorie').selectOption('EPICERIE');
+    await page.getByLabel('Unité par défaut').selectOption('g');
+    await page.getByLabel('Durée de conservation').selectOption('LONGUE');
+    await page.getByLabel("Source d'achat").selectOption('MARCHE');
+    await page.getByRole('button', { name: 'Ajouter' }).click();
+    await expect(page).toHaveURL(/\/ingredients$/);
+
+    await page.goto('/courses');
+    const itemForm = page.locator('form').filter({ has: page.getByLabel('Quantité') });
+    await itemForm.getByLabel('Ingrédient').selectOption({ label: ingredientName });
+    await itemForm.getByLabel('Quantité').fill('12345.6789');
+    await itemForm.getByLabel('Unité', { exact: true }).fill('kilogrammes-force');
+    await itemForm.getByRole('button', { name: 'Ajouter' }).click();
+
+    await expect(page.getByRole('button', { name: new RegExp(ingredientName) })).toBeVisible();
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    const viewportWidth = await page.evaluate(() => window.innerWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(viewportWidth);
+  });
 });

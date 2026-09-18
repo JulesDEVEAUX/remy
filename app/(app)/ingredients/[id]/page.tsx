@@ -18,7 +18,7 @@ export default async function EditIngredientPage({ params }: { params: Promise<{
 
   return (
     <main className="p-6 pb-32">
-      <PageHeader title={ingredient.name} backHref="/ingredients" />
+      <PageHeader title={`${ingredient.emoji} ${ingredient.name}`} backHref="/ingredients" />
       <IngredientForm
         action={updateIngredientAction.bind(null, id)}
         defaultValues={{
@@ -28,6 +28,7 @@ export default async function EditIngredientPage({ params }: { params: Promise<{
           conservation: ingredient.conservation,
           defaultSource: ingredient.defaultSource,
           isPrivate: ingredient.isPrivate,
+          emoji: ingredient.emoji,
         }}
         submitLabel="Enregistrer"
       />

@@ -42,7 +42,11 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
   if (!isOwner) {
     return (
       <main className="p-6 pb-32">
-        <PageHeader title={recipe.name} backHref="/recettes" action={<Tag tone="neutre">Public</Tag>} />
+        <PageHeader
+          title={`${recipe.emoji} ${recipe.name}`}
+          backHref="/recettes"
+          action={<Tag tone="neutre">Public</Tag>}
+        />
 
         {recipe.prepMinutes && (
           <p className="mb-4 font-mono text-[12px] text-clay-600 dark:text-clay-400">{recipe.prepMinutes} min</p>
@@ -83,7 +87,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
 
   return (
     <main className="p-6 pb-32">
-      <PageHeader title={recipe.name} backHref="/recettes" />
+      <PageHeader title={`${recipe.emoji} ${recipe.name}`} backHref="/recettes" />
 
       <div className="mb-6 flex flex-col gap-3 rounded-lg bg-sand px-4 py-4 dark:bg-clay-800">
         <span className="font-mono text-[13px] text-clay-700 dark:text-clay-400">{formatLastMade(recipe.lastMadeAt)}</span>

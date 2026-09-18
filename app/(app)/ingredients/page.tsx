@@ -49,6 +49,7 @@ export default async function IngredientsPage() {
                 <ListRow
                   key={item.id}
                   href={`/ingredients/${item.id}`}
+                  emoji={item.emoji}
                   label={item.name}
                   meta={item.defaultUnit}
                   tag={

@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState } from 'react';
-import { Button, CheckboxField, SelectField, TextField } from '@/components/ui';
+import { useActionState, useState } from 'react';
+import { Button, CheckboxField, EmojiField, SelectField, TextField } from '@/components/ui';
 import { UNIT_OPTIONS } from '@/lib/ingredients/units';
 import type { IngredientFormValues } from '@/lib/ingredients/validation';
 import type { IngredientActionState } from './actions';
@@ -31,16 +31,20 @@ export function IngredientForm({
   defaultValues,
   submitLabel,
   redirectTo,
+  randomEmoji,
 }: {
   action: (state: IngredientActionState, formData: FormData) => Promise<IngredientActionState>;
   defaultValues?: IngredientFormValues;
   submitLabel: string;
   /** Page vers laquelle revenir après l'ajout — sinon la liste des ingrédients. */
   redirectTo?: string;
+  /** Emoji tiré au hasard côté serveur (cf. lib/emoji.ts) pour préremplir un nouvel ingrédient. */
+  randomEmoji?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const values = state?.values ?? defaultValues;
   const errors = state?.errors;
+  const [emoji, setEmoji] = useState(values?.emoji ?? randomEmoji ?? '');
 
   // Un ingrédient existant peut porter une unité saisie avant l'introduction de
   // cette liste fermée (cf. issue #28) : on l'ajoute en option supplémentaire
@@ -62,6 +66,7 @@ export function IngredientForm({
         error={errors?.name}
         placeholder="Farine T55"
       />
+      <EmojiField name="emoji" value={emoji} onChange={setEmoji} error={errors?.emoji} />
       <SelectField
         label="Catégorie"
         name="category"

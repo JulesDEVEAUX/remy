@@ -34,10 +34,12 @@ test.describe('CRUD recettes', () => {
     await page.getByLabel('Lien source').fill('https://example.com/curry');
     await page.getByLabel('Temps de préparation (min)').fill('30');
     await page.getByLabel('Instructions').fill('Faire revenir les oignons puis mijoter avec les lentilles.');
-    // { force: true } : l'input checkbox est en peer sr-only (0x0 visuellement), c'est le
-    // <label> englobant (le Tag stylé) qui reçoit le clic natif — Playwright refuse
-    // d'y voir une cible actionnable alors que c'est le motif attendu.
-    await page.getByLabel('Hiver').check({ force: true });
+    // Clique le <label> englobant (le Tag stylé, visible) plutôt que l'input checkbox
+    // lui-même (peer sr-only, 0x0 visuellement) : un clic forcé sur les coordonnées de
+    // l'input devient fragile dès que la page s'allonge (champ Emoji ajouté par
+    // l'issue #73), le clic pouvant atterrir sur un autre élément à cet endroit.
+    await page.locator('label', { hasText: 'Hiver' }).click();
+    await expect(page.getByLabel('Hiver')).toBeChecked();
     await page.getByLabel('Tags (séparés par une virgule)').fill('rapide, végétarien');
 
     await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click();

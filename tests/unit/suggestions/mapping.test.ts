@@ -16,6 +16,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
     personalNote: null,
     lastMadeAt: null,
     isPrivate: false,
+    emoji: '🍛',
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

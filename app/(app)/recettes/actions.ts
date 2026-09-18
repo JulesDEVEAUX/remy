@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { pickRandomEmoji } from '@/lib/emoji';
 import { getCurrentHousehold } from '@/lib/household';
 import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { safeRedirectTarget } from '@/lib/navigation';
@@ -48,6 +49,7 @@ export async function createRecipeAction(
       seasons: result.data.seasons,
       tags: result.data.tags,
       isPrivate: result.data.isPrivate,
+      emoji: result.data.emoji ?? pickRandomEmoji(),
       ingredients: {
         create: result.data.ingredients.map((ingredient) => ({
           ingredientId: ingredient.ingredientId,
@@ -87,6 +89,7 @@ export async function updateRecipeAction(
         seasons: result.data.seasons,
         tags: result.data.tags,
         isPrivate: result.data.isPrivate,
+        emoji: result.data.emoji ?? pickRandomEmoji(),
       },
     });
 
@@ -193,6 +196,7 @@ export async function cloneRecipeAction(sourceId: string) {
       seasons: source.seasons,
       tags: source.tags,
       isPrivate: false,
+      emoji: source.emoji,
       ingredients: {
         create: clonableIngredients.map((ingredient) => ({
           ingredientId: ingredient.ingredientId,

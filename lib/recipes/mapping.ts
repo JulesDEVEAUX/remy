@@ -23,6 +23,7 @@ export function parseRecipeFormData(formData: FormData): RecipeFormValues {
     tags: String(formData.get('tags') ?? ''),
     ingredientRows,
     isPrivate: formData.get('isPrivate') === 'on',
+    emoji: String(formData.get('emoji') ?? ''),
   };
 }
 
@@ -44,6 +45,7 @@ export type RecipeViewModel = {
   ingredientCount: number;
   lastMadeLabel: string;
   isPrivate: boolean;
+  emoji: string;
 };
 
 /** Convertit une Recipe Prisma (avec ses ingrédients) en modèle d'affichage. */
@@ -58,6 +60,7 @@ export function toRecipeViewModel(recipe: Recipe & { ingredients: RecipeIngredie
     ingredientCount: recipe.ingredients.length,
     lastMadeLabel: formatLastMade(recipe.lastMadeAt),
     isPrivate: recipe.isPrivate,
+    emoji: recipe.emoji,
   };
 }
 
@@ -76,5 +79,6 @@ export function toRecipeFormValues(recipe: Recipe & { ingredients: RecipeIngredi
       unit: recipeIngredient.unit,
     })),
     isPrivate: recipe.isPrivate,
+    emoji: recipe.emoji,
   };
 }

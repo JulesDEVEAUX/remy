@@ -15,6 +15,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
     personalNote: null,
     lastMadeAt: null,
     isPrivate: false,
+    emoji: '🍛',
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -49,6 +50,7 @@ describe('parseRecipeFormData', () => {
     formData.append('quantity[]', '2');
     formData.append('unit[]', 'pièce');
     formData.set('isPrivate', 'on');
+    formData.set('emoji', '🍛');
 
     expect(parseRecipeFormData(formData)).toEqual({
       name: 'Curry de lentilles',
@@ -62,6 +64,7 @@ describe('parseRecipeFormData', () => {
         { ingredientId: 'ing_2', quantity: '2', unit: 'pièce' },
       ],
       isPrivate: true,
+      emoji: '🍛',
     });
   });
 
@@ -75,6 +78,7 @@ describe('parseRecipeFormData', () => {
       tags: '',
       ingredientRows: [],
       isPrivate: false,
+      emoji: '',
     });
   });
 });
@@ -108,6 +112,11 @@ describe('toRecipeViewModel', () => {
     expect(viewModel.tags).toEqual(['rapide']);
   });
 
+  it('passes the emoji through unchanged', () => {
+    const viewModel = toRecipeViewModel({ ...makeRecipe({ emoji: '🍲' }), ingredients: [] });
+    expect(viewModel.emoji).toBe('🍲');
+  });
+
   it('reports the last-made state as a relative label', () => {
     const neverMade = toRecipeViewModel({ ...makeRecipe({ lastMadeAt: null }), ingredients: [] });
     expect(neverMade.lastMadeLabel).toBe('jamais réalisée');
@@ -133,6 +142,7 @@ describe('toRecipeFormValues', () => {
       tags: 'rapide, végétarien',
       ingredientRows: [{ ingredientId: 'ing_1', quantity: '200', unit: 'g' }],
       isPrivate: false,
+      emoji: '🍛',
     });
   });
 

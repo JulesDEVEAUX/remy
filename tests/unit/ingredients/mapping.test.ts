@@ -13,6 +13,7 @@ function makeIngredient(overrides: Partial<Ingredient> = {}): Ingredient {
     conservation: ConservationDuree.LONGUE,
     defaultSource: SourceAchat.CARREFOUR,
     isPrivate: false,
+    emoji: '🌾',
     kcalPer100g: null,
     proteinPer100g: null,
     carbsPer100g: null,
@@ -33,6 +34,7 @@ describe('parseIngredientFormData', () => {
     formData.set('conservation', 'COURTE');
     formData.set('defaultSource', 'MARCHE');
     formData.set('isPrivate', 'on');
+    formData.set('emoji', '🥛');
 
     expect(parseIngredientFormData(formData)).toEqual({
       name: 'Lait',
@@ -41,6 +43,7 @@ describe('parseIngredientFormData', () => {
       conservation: 'COURTE',
       defaultSource: 'MARCHE',
       isPrivate: true,
+      emoji: '🥛',
     });
   });
 
@@ -52,6 +55,7 @@ describe('parseIngredientFormData', () => {
       conservation: '',
       defaultSource: '',
       isPrivate: false,
+      emoji: '',
     });
   });
 });
@@ -61,6 +65,11 @@ describe('toIngredientViewModel', () => {
     const viewModel = toIngredientViewModel(makeIngredient({ id: 'ing_42', defaultUnit: 'kg' }));
     expect(viewModel.id).toBe('ing_42');
     expect(viewModel.defaultUnit).toBe('kg');
+  });
+
+  it('carries the emoji through unchanged', () => {
+    const viewModel = toIngredientViewModel(makeIngredient({ emoji: '🥕' }));
+    expect(viewModel.emoji).toBe('🥕');
   });
 
   it('produces a French label and a valid icon name for every category', () => {

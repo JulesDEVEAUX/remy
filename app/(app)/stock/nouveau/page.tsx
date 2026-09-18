@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button, PageHeader } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { prisma } from '@/lib/prisma';
 import { createStockAction } from '../actions';
 import { StockForm } from '../StockForm';
@@ -8,7 +9,7 @@ import { StockForm } from '../StockForm';
 export default async function NewStockPage() {
   const household = await getCurrentHousehold();
   const ingredients = await prisma.ingredient.findMany({
-    where: { householdId: household.id },
+    where: ingredientCatalogWhere(household.id),
     orderBy: { name: 'asc' },
   });
 
@@ -28,7 +29,12 @@ export default async function NewStockPage() {
         <StockForm
           action={createStockAction}
           submitLabel="Ajouter"
-          ingredientOptions={ingredients.map((ingredient) => ({ id: ingredient.id, name: ingredient.name }))}
+          ingredientOptions={ingredients.map((ingredient) => ({
+            id: ingredient.id,
+            name: ingredient.name,
+            defaultUnit: ingredient.defaultUnit,
+            conservation: ingredient.conservation,
+          }))}
         />
       )}
     </main>

@@ -9,6 +9,7 @@ export type IngredientFormValues = {
   defaultUnit: string;
   conservation: string;
   defaultSource: string;
+  isPrivate: boolean;
 };
 
 export type IngredientInput = {
@@ -17,6 +18,7 @@ export type IngredientInput = {
   defaultUnit: string;
   conservation: ConservationDuree;
   defaultSource: SourceAchat;
+  isPrivate: boolean;
 };
 
 export type IngredientFieldErrors = Partial<Record<keyof IngredientFormValues, string>>;
@@ -81,6 +83,7 @@ export function validateIngredientInput(values: IngredientFormValues): Ingredien
       defaultUnit,
       conservation: values.conservation as ConservationDuree,
       defaultSource: values.defaultSource as SourceAchat,
+      isPrivate: values.isPrivate,
     },
   };
 }

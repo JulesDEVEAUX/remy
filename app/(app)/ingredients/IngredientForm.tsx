@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { Button, SelectField, TextField } from '@/components/ui';
+import { Button, CheckboxField, SelectField, TextField } from '@/components/ui';
 import { UNIT_OPTIONS } from '@/lib/ingredients/units';
 import type { IngredientFormValues } from '@/lib/ingredients/validation';
 import type { IngredientActionState } from './actions';
@@ -126,6 +126,7 @@ export function IngredientForm({
           </option>
         ))}
       </SelectField>
+      <CheckboxField label="Ingrédient privé" name="isPrivate" defaultChecked={values?.isPrivate} />
       <Button type="submit" block disabled={pending}>
         {pending ? 'Enregistrement' : submitLabel}
       </Button>

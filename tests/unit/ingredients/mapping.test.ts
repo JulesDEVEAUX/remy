@@ -12,6 +12,7 @@ function makeIngredient(overrides: Partial<Ingredient> = {}): Ingredient {
     defaultUnit: 'g',
     conservation: ConservationDuree.LONGUE,
     defaultSource: SourceAchat.CARREFOUR,
+    isPrivate: false,
     kcalPer100g: null,
     proteinPer100g: null,
     carbsPer100g: null,
@@ -31,6 +32,7 @@ describe('parseIngredientFormData', () => {
     formData.set('defaultUnit', 'L');
     formData.set('conservation', 'COURTE');
     formData.set('defaultSource', 'MARCHE');
+    formData.set('isPrivate', 'on');
 
     expect(parseIngredientFormData(formData)).toEqual({
       name: 'Lait',
@@ -38,16 +40,18 @@ describe('parseIngredientFormData', () => {
       defaultUnit: 'L',
       conservation: 'COURTE',
       defaultSource: 'MARCHE',
+      isPrivate: true,
     });
   });
 
-  it('defaults missing fields to empty strings instead of throwing', () => {
+  it('defaults missing fields to empty strings, and isPrivate to false, instead of throwing', () => {
     expect(parseIngredientFormData(new FormData())).toEqual({
       name: '',
       category: '',
       defaultUnit: '',
       conservation: '',
       defaultSource: '',
+      isPrivate: false,
     });
   });
 });

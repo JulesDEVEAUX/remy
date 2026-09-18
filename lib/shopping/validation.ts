@@ -1,4 +1,5 @@
 const UNIT_MAX_LENGTH = 20;
+const LIST_NAME_MAX_LENGTH = 40;
 
 export type ShoppingItemFormValues = {
   ingredientId: string;
@@ -51,4 +52,25 @@ export function validateShoppingItemInput(
   }
 
   return { ok: true, data: { ingredientId, quantity, unit } };
+}
+
+/**
+ * Valide le nom d'une nouvelle liste de courses. `existingNames` restreint aux
+ * noms déjà pris par le foyer (contrainte d'unicité Prisma sur householdId+name).
+ */
+export function validateShoppingListName(
+  rawName: string,
+  existingNames: ReadonlySet<string>,
+): { ok: true; data: string } | { ok: false; error: string } {
+  const name = rawName.trim();
+  if (!name) {
+    return { ok: false, error: 'Le nom de la liste est obligatoire.' };
+  }
+  if (name.length > LIST_NAME_MAX_LENGTH) {
+    return { ok: false, error: `Le nom dépasse ${LIST_NAME_MAX_LENGTH} caractères.` };
+  }
+  if (existingNames.has(name)) {
+    return { ok: false, error: 'Une liste porte déjà ce nom.' };
+  }
+  return { ok: true, data: name };
 }

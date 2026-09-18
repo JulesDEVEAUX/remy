@@ -8,7 +8,7 @@ export { RayonGroup } from './RayonGroup';
 export { PortionStepper } from './PortionStepper';
 export { TabBar } from './TabBar';
 export { ListRow } from './ListRow';
-export { TextField, SelectField, TextareaField } from './FormField';
+export { TextField, SelectField, TextareaField, CheckboxField } from './FormField';
 export { PinField } from './PinField';
 export { PageHeader } from './PageHeader';
 export { EmptyState } from './EmptyState';

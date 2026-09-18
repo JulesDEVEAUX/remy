@@ -8,6 +8,7 @@ const validValues: IngredientFormValues = {
   defaultUnit: 'g',
   conservation: 'LONGUE',
   defaultSource: 'CARREFOUR',
+  isPrivate: false,
 };
 
 describe('validateIngredientInput', () => {
@@ -26,8 +27,14 @@ describe('validateIngredientInput', () => {
         defaultUnit: 'g',
         conservation: 'LONGUE',
         defaultSource: 'CARREFOUR',
+        isPrivate: false,
       },
     });
+  });
+
+  it('carries a checked isPrivate through unchanged', () => {
+    const result = validateIngredientInput({ ...validValues, isPrivate: true });
+    expect(result).toEqual({ ok: true, data: { ...validValues, isPrivate: true } });
   });
 
   it('rejects an empty name', () => {
@@ -100,6 +107,7 @@ describe('validateIngredientInput', () => {
       defaultUnit: '',
       conservation: '',
       defaultSource: '',
+      isPrivate: false,
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { Button, Icon, IconButton, SelectField, Tag, TextField, TextareaField } from '@/components/ui';
+import { Button, CheckboxField, Icon, IconButton, SelectField, Tag, TextField, TextareaField } from '@/components/ui';
 import type { RecipeFormValues } from '@/lib/recipes/validation';
 import type { RecipeActionState } from './actions';
 
@@ -13,7 +13,7 @@ const SEASON_OPTIONS = [
   { value: 'TOUTE_ANNEE', label: "Toute l'année" },
 ];
 
-type IngredientOption = { id: string; name: string };
+type IngredientOption = { id: string; name: string; defaultUnit: string };
 
 type Row = { key: string; ingredientId: string; quantity: string; unit: string };
 
@@ -57,6 +57,16 @@ export function RecipeForm({
 
   function removeRow(key: string) {
     setRows((current) => (current.length > 1 ? current.filter((row) => row.key !== key) : current));
+  }
+
+  function updateRow(key: string, patch: Partial<Omit<Row, 'key'>>) {
+    setRows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  }
+
+  /** Suggère l'unité par défaut du produit choisi pour cette ligne. */
+  function handleRowIngredientChange(key: string, ingredientId: string) {
+    const option = ingredientOptions.find((candidate) => candidate.id === ingredientId);
+    updateRow(key, { ingredientId, unit: option?.defaultUnit ?? '' });
   }
 
   return (
@@ -148,7 +158,13 @@ export function RecipeForm({
             {rows.map((row) => (
               <div key={row.key} className="flex items-end gap-2">
                 <div className="flex-1">
-                  <SelectField label="Ingrédient" name="ingredientId[]" required defaultValue={row.ingredientId}>
+                  <SelectField
+                    label="Ingrédient"
+                    name="ingredientId[]"
+                    required
+                    value={row.ingredientId}
+                    onChange={(event) => handleRowIngredientChange(row.key, event.target.value)}
+                  >
                     <option value="" disabled>
                       Choisir…
                     </option>
@@ -167,11 +183,18 @@ export function RecipeForm({
                     min={0}
                     step="any"
                     required
-                    defaultValue={row.quantity}
+                    value={row.quantity}
+                    onChange={(event) => updateRow(row.key, { quantity: event.target.value })}
                   />
                 </div>
                 <div className="w-20">
-                  <TextField label="Unité" name="unit[]" required defaultValue={row.unit} />
+                  <TextField
+                    label="Unité"
+                    name="unit[]"
+                    required
+                    value={row.unit}
+                    onChange={(event) => updateRow(row.key, { unit: event.target.value })}
+                  />
                 </div>
                 <IconButton
                   type="button"
@@ -191,6 +214,8 @@ export function RecipeForm({
           </Button>
         )}
       </div>
+
+      <CheckboxField label="Recette privée" name="isPrivate" defaultChecked={values?.isPrivate} />
 
       <Button type="submit" block disabled={pending}>
         {pending ? 'Enregistrement' : submitLabel}

@@ -1,11 +1,14 @@
 'use client';
 
-import { useActionState } from 'react';
+import type { ConservationDuree } from '@prisma/client';
+import { useActionState, useState } from 'react';
 import { Button, SelectField, TextField } from '@/components/ui';
+import { estimateExpiryDate } from '@/lib/stock/expiry';
+import { toDateInputValue } from '@/lib/stock/mapping';
 import type { StockFormValues } from '@/lib/stock/validation';
 import type { StockActionState } from './actions';
 
-type IngredientOption = { id: string; name: string };
+type IngredientOption = { id: string; name: string; defaultUnit: string; conservation: ConservationDuree };
 
 export function StockForm({
   action,
@@ -25,6 +28,19 @@ export function StockForm({
   const values = state?.values ?? defaultValues;
   const errors = state?.errors;
 
+  const [unit, setUnit] = useState(values?.unit ?? '');
+  const [expiresAt, setExpiresAt] = useState(values?.expiresAt ?? '');
+
+  /** Suggère l'unité par défaut du produit et une date de péremption estimée à partir de sa durée de conservation. */
+  function handleIngredientChange(ingredientId: string) {
+    const option = ingredientOptions.find((candidate) => candidate.id === ingredientId);
+    if (!option) {
+      return;
+    }
+    setUnit(option.defaultUnit);
+    setExpiresAt(toDateInputValue(estimateExpiryDate(option.conservation, new Date())));
+  }
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {fixedIngredientName ? (
@@ -42,6 +58,7 @@ export function StockForm({
           required
           defaultValue={values?.ingredientId ?? ''}
           error={errors?.ingredientId}
+          onChange={(event) => handleIngredientChange(event.target.value)}
         >
           <option value="" disabled>
             Choisir…
@@ -69,7 +86,8 @@ export function StockForm({
         name="unit"
         required
         maxLength={20}
-        defaultValue={values?.unit}
+        value={unit}
+        onChange={(event) => setUnit(event.target.value)}
         error={errors?.unit}
         placeholder="g, L, pièce…"
       />
@@ -77,7 +95,8 @@ export function StockForm({
         label="Date de péremption"
         name="expiresAt"
         type="date"
-        defaultValue={values?.expiresAt}
+        value={expiresAt}
+        onChange={(event) => setExpiresAt(event.target.value)}
         error={errors?.expiresAt}
       />
       <Button type="submit" block disabled={pending}>

@@ -51,7 +51,12 @@ export default async function IngredientsPage() {
                   href={`/ingredients/${item.id}`}
                   label={item.name}
                   meta={item.defaultUnit}
-                  tag={<Tag tone="neutre">{item.conservationLabel}</Tag>}
+                  tag={
+                    <>
+                      {item.isPrivate && <Tag tone="neutre">Privé</Tag>}
+                      <Tag tone="neutre">{item.conservationLabel}</Tag>
+                    </>
+                  }
                 />
               ))}
             </RayonGroup>

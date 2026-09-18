@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateShoppingItemInput, type ShoppingItemFormValues } from '@/lib/shopping/validation';
+import { validateShoppingItemInput, validateShoppingListName, type ShoppingItemFormValues } from '@/lib/shopping/validation';
 
 const validIngredientIds = new Set(['ing_1']);
 
@@ -69,5 +69,34 @@ describe('validateShoppingItemInput', () => {
     if (!result.ok) {
       expect(Object.keys(result.errors).sort()).toEqual(['ingredientId', 'quantity', 'unit'].sort());
     }
+  });
+});
+
+describe('validateShoppingListName', () => {
+  const existingNames = new Set(['Courses']);
+
+  it('accepts a valid, unused name', () => {
+    const result = validateShoppingListName('Weekend chez mes parents', existingNames);
+    expect(result).toEqual({ ok: true, data: 'Weekend chez mes parents' });
+  });
+
+  it('trims surrounding whitespace', () => {
+    const result = validateShoppingListName('  Anniversaire  ', existingNames);
+    expect(result).toEqual({ ok: true, data: 'Anniversaire' });
+  });
+
+  it('rejects an empty name', () => {
+    const result = validateShoppingListName('   ', existingNames);
+    expect(result.ok).toBe(false);
+  });
+
+  it('rejects a name longer than 40 characters', () => {
+    const result = validateShoppingListName('a'.repeat(41), existingNames);
+    expect(result.ok).toBe(false);
+  });
+
+  it('rejects a name already used by another list of the same household', () => {
+    const result = validateShoppingListName('Courses', existingNames);
+    expect(result.ok).toBe(false);
   });
 });

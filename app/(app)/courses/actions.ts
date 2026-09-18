@@ -3,10 +3,17 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
+import { monthlyToWeeklyQuantity } from '@/lib/household-needs/quantity';
 import { startOfDay } from '@/lib/planning/dates';
 import { parseShoppingItemFormData, selectPlannedRecipeOccurrences } from '@/lib/shopping/mapping';
-import { computeResidualQuantities } from '@/lib/shopping/quantity';
-import { validateShoppingItemInput, type ShoppingItemFieldErrors, type ShoppingItemFormValues } from '@/lib/shopping/validation';
+import { computeResidualQuantities, type QuantityLine } from '@/lib/shopping/quantity';
+import {
+  validateShoppingItemInput,
+  validateShoppingListName,
+  type ShoppingItemFieldErrors,
+  type ShoppingItemFormValues,
+} from '@/lib/shopping/validation';
 import { prisma } from '@/lib/prisma';
 
 export type ShoppingItemActionState =
@@ -15,10 +22,19 @@ export type ShoppingItemActionState =
 
 async function loadHouseholdIngredientSources(householdId: string) {
   const ingredients = await prisma.ingredient.findMany({
-    where: { householdId },
+    where: ingredientCatalogWhere(householdId),
     select: { id: true, defaultSource: true },
   });
   return new Map(ingredients.map((ingredient) => [ingredient.id, ingredient.defaultSource]));
+}
+
+/** Vérifie que la liste ciblée appartient bien au foyer, pour éviter toute écriture croisée. */
+async function assertShoppingListInHousehold(householdId: string, shoppingListId: string) {
+  const list = await prisma.shoppingList.findFirst({ where: { id: shoppingListId, householdId } });
+  if (!list) {
+    throw new Error('Liste de courses introuvable pour ce foyer.');
+  }
+  return list;
 }
 
 export async function addShoppingItemAction(
@@ -26,6 +42,9 @@ export async function addShoppingItemAction(
   formData: FormData,
 ): Promise<ShoppingItemActionState> {
   const household = await getCurrentHousehold();
+  const shoppingListId = String(formData.get('shoppingListId') ?? '');
+  await assertShoppingListInHousehold(household.id, shoppingListId);
+
   const sourceById = await loadHouseholdIngredientSources(household.id);
   const values = parseShoppingItemFormData(formData);
   const result = validateShoppingItemInput(values, new Set(sourceById.keys()));
@@ -41,6 +60,7 @@ export async function addShoppingItemAction(
   await prisma.shoppingListItem.create({
     data: {
       householdId: household.id,
+      shoppingListId,
       ingredientId: result.data.ingredientId,
       quantity: result.data.quantity,
       unit: result.data.unit,
@@ -50,26 +70,36 @@ export async function addShoppingItemAction(
   });
 
   revalidatePath('/courses');
-  redirect('/courses');
+  redirect(`/courses?listId=${shoppingListId}`);
 }
 
 /**
- * Génère les items manquants à partir de tous les repas planifiés à venir
- * (aujourd'hui inclus) : additionne les RecipeIngredient nécessaires pour
- * chaque occurrence de repas (un batch cooking ne compte qu'une fois même
- * s'il couvre plusieurs créneaux, cf. selectPlannedRecipeOccurrences),
- * soustrait le stock actuel, ne crée un item que pour la quantité résiduelle
- * strictement positive.
+ * Génère les items manquants, dans la liste de courses choisie, à partir de
+ * tous les repas planifiés à venir (aujourd'hui inclus) et des besoins
+ * récurrents du foyer hors recettes (huile, produits ménagers, hygiène…, cf.
+ * HouseholdNeed) : additionne les RecipeIngredient nécessaires pour chaque
+ * occurrence de repas (un batch cooking ne compte qu'une fois même s'il
+ * couvre plusieurs créneaux, cf. selectPlannedRecipeOccurrences) ainsi que
+ * l'équivalent hebdomadaire de chaque besoin récurrent, soustrait le stock
+ * actuel, ne crée un item que pour la quantité résiduelle strictement
+ * positive.
  */
-export async function generateShoppingListAction() {
+export async function generateShoppingListAction(shoppingListId: string) {
   const household = await getCurrentHousehold();
+  await assertShoppingListInHousehold(household.id, shoppingListId);
 
-  const upcomingMealPlans = await prisma.mealPlan.findMany({
-    where: { householdId: household.id, date: { gte: startOfDay(new Date()) }, recipeId: { not: null } },
-    select: { recipeId: true, isBatch: true },
-  });
+  const [upcomingMealPlans, householdNeeds] = await Promise.all([
+    prisma.mealPlan.findMany({
+      where: { householdId: household.id, date: { gte: startOfDay(new Date()) }, recipeId: { not: null } },
+      select: { recipeId: true, isBatch: true },
+    }),
+    prisma.householdNeed.findMany({
+      where: { householdId: household.id },
+      select: { ingredientId: true, monthlyQuantity: true, unit: true },
+    }),
+  ]);
   const recipeOccurrences = selectPlannedRecipeOccurrences(upcomingMealPlans);
-  if (recipeOccurrences.length === 0) {
+  if (recipeOccurrences.length === 0 && householdNeeds.length === 0) {
     return;
   }
 
@@ -90,7 +120,15 @@ export async function generateShoppingListAction() {
     list.push(ingredient);
     ingredientsByRecipe.set(ingredient.recipeId, list);
   }
-  const needed = recipeOccurrences.flatMap((recipeId) => ingredientsByRecipe.get(recipeId) ?? []);
+  const neededFromRecipes: QuantityLine[] = recipeOccurrences.flatMap(
+    (recipeId) => ingredientsByRecipe.get(recipeId) ?? [],
+  );
+  const neededFromHouseholdNeeds: QuantityLine[] = householdNeeds.map((need) => ({
+    ingredientId: need.ingredientId,
+    unit: need.unit,
+    quantity: monthlyToWeeklyQuantity(need.monthlyQuantity),
+  }));
+  const needed = [...neededFromRecipes, ...neededFromHouseholdNeeds];
 
   const residuals = computeResidualQuantities(needed, stockEntries);
   if (residuals.length === 0) {
@@ -107,6 +145,7 @@ export async function generateShoppingListAction() {
     return [
       {
         householdId: household.id,
+        shoppingListId,
         ingredientId: residual.ingredientId,
         quantity: residual.quantity,
         unit: residual.unit,
@@ -136,8 +175,50 @@ export async function toggleShoppingItemAction(id: string) {
   revalidatePath('/courses');
 }
 
-export async function clearCheckedItemsAction() {
+export async function clearCheckedItemsAction(shoppingListId: string) {
   const household = await getCurrentHousehold();
-  await prisma.shoppingListItem.deleteMany({ where: { householdId: household.id, checked: true } });
+  await prisma.shoppingListItem.deleteMany({ where: { householdId: household.id, shoppingListId, checked: true } });
   revalidatePath('/courses');
+}
+
+export type CreateShoppingListState = { error: string; value: string } | undefined;
+
+export async function createShoppingListAction(
+  _prevState: CreateShoppingListState,
+  formData: FormData,
+): Promise<CreateShoppingListState> {
+  const household = await getCurrentHousehold();
+  const existingLists = await prisma.shoppingList.findMany({
+    where: { householdId: household.id },
+    select: { name: true },
+  });
+  const value = String(formData.get('listName') ?? '');
+  const result = validateShoppingListName(value, new Set(existingLists.map((list) => list.name)));
+  if (!result.ok) {
+    return { error: result.error, value };
+  }
+
+  const created = await prisma.shoppingList.create({ data: { householdId: household.id, name: result.data } });
+  revalidatePath('/courses');
+  redirect(`/courses?listId=${created.id}`);
+}
+
+export async function deleteShoppingListAction(id: string) {
+  const household = await getCurrentHousehold();
+  const remainingLists = await prisma.shoppingList.findMany({
+    where: { householdId: household.id },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  // Toujours garder au moins une liste : sans ça la page /courses n'aurait plus
+  // de liste à afficher ni à proposer pour un futur ajout.
+  if (remainingLists.length <= 1) {
+    return;
+  }
+
+  await prisma.shoppingList.deleteMany({ where: { id, householdId: household.id } });
+  revalidatePath('/courses');
+
+  const fallback = remainingLists.find((list) => list.id !== id) ?? remainingLists[0];
+  redirect(`/courses?listId=${fallback.id}`);
 }

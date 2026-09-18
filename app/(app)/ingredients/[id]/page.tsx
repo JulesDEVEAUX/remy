@@ -27,6 +27,7 @@ export default async function EditIngredientPage({ params }: { params: Promise<{
           defaultUnit: ingredient.defaultUnit,
           conservation: ingredient.conservation,
           defaultSource: ingredient.defaultSource,
+          isPrivate: ingredient.isPrivate,
         }}
         submitLabel="Enregistrer"
       />

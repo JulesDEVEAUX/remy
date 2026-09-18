@@ -48,6 +48,11 @@ model Household {
   // Pas de FK Prisma : la table auth.users vit hors du schéma géré par Prisma.
   ownerUserId String @unique
 
+  // Code court partagé manuellement (pas d'envoi d'email, cf. limites du mailer
+  // Supabase) pour qu'un autre utilisateur rejoigne ce foyer à l'inscription —
+  // voir HouseholdMember. Régénérable, null tant qu'il n'a jamais été demandé.
+  inviteCode String? @unique
+
   name              String
   createdAt         DateTime           @default(now())
   people            Person[]
@@ -58,6 +63,19 @@ model Household {
   shoppingLists     ShoppingList[]
   mealPlans         MealPlan[]
   householdNeeds    HouseholdNeed[]
+  members           HouseholdMember[]
+}
+
+// Rattache un utilisateur Supabase Auth supplémentaire (pas le propriétaire,
+// cf. Household.ownerUserId) à un foyer existant, via un code d'invitation
+// saisi à l'inscription (cf. app/signup/actions.ts) — vue partagée du foyer,
+// sans jamais créer son propre foyer séparé.
+model HouseholdMember {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id])
+  userId      String    @unique
+  createdAt   DateTime  @default(now())
 }
 
 model Person {
@@ -70,6 +88,11 @@ model Person {
   preferences     PersonPreference[]
   mealPlanPersons MealPlanPerson[]
   createdAt       DateTime           @default(now())
+
+  // Utilisateur Supabase Auth qui s'est désigné comme étant ce mangeur
+  // ("c'est moi", cf. issue #25) — un seul Person par utilisateur, mais
+  // optionnel : un mangeur peut rester une simple entrée sans compte lié.
+  linkedUserId String? @unique
 }
 
 // Envie du jour : peut changer d'une date/repas à l'autre pour une même personne

@@ -50,13 +50,18 @@ describe('validateLoginInput', () => {
 });
 
 describe('validateSignupInput', () => {
-  it('accepts matching pins and a valid email', () => {
-    const result = validateSignupInput({ email: 'toi@exemple.fr', pin: '123456', pinConfirm: '123456' });
-    expect(result).toEqual({ ok: true, data: { email: 'toi@exemple.fr', pin: '123456' } });
+  it('accepts matching pins and a valid email, with no invite code', () => {
+    const result = validateSignupInput({ email: 'toi@exemple.fr', pin: '123456', pinConfirm: '123456', inviteCode: '' });
+    expect(result).toEqual({ ok: true, data: { email: 'toi@exemple.fr', pin: '123456', inviteCode: null } });
   });
 
   it('rejects mismatched pin confirmation', () => {
-    const result = validateSignupInput({ email: 'toi@exemple.fr', pin: '123456', pinConfirm: '654321' });
+    const result = validateSignupInput({
+      email: 'toi@exemple.fr',
+      pin: '123456',
+      pinConfirm: '654321',
+      inviteCode: '',
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errors.pinConfirm).toBeDefined();
@@ -64,7 +69,7 @@ describe('validateSignupInput', () => {
   });
 
   it('reports both pin and confirmation errors when the pin itself is malformed', () => {
-    const result = validateSignupInput({ email: 'toi@exemple.fr', pin: '12', pinConfirm: '654321' });
+    const result = validateSignupInput({ email: 'toi@exemple.fr', pin: '12', pinConfirm: '654321', inviteCode: '' });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errors.pin).toBeDefined();
@@ -73,10 +78,36 @@ describe('validateSignupInput', () => {
   });
 
   it('rejects an empty email', () => {
-    const result = validateSignupInput({ email: '', pin: '123456', pinConfirm: '123456' });
+    const result = validateSignupInput({ email: '', pin: '123456', pinConfirm: '123456', inviteCode: '' });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errors.email).toBeDefined();
+    }
+  });
+
+  it('accepts and normalizes a well-formed invite code', () => {
+    const result = validateSignupInput({
+      email: 'toi@exemple.fr',
+      pin: '123456',
+      pinConfirm: '123456',
+      inviteCode: '  abcd1234  ',
+    });
+    expect(result).toEqual({
+      ok: true,
+      data: { email: 'toi@exemple.fr', pin: '123456', inviteCode: 'ABCD1234' },
+    });
+  });
+
+  it('rejects an invite code of the wrong length', () => {
+    const result = validateSignupInput({
+      email: 'toi@exemple.fr',
+      pin: '123456',
+      pinConfirm: '123456',
+      inviteCode: 'ABC',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.inviteCode).toBeDefined();
     }
   });
 });

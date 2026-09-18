@@ -41,6 +41,13 @@ export function SignupForm({
           autoComplete="new-password"
           error={state?.errors.pinConfirm}
         />
+        <TextField
+          label="Code d'invitation (si tu rejoins un foyer)"
+          name="inviteCode"
+          maxLength={8}
+          error={state?.errors.inviteCode}
+          placeholder="Optionnel"
+        />
         <Button type="submit" block disabled={pending}>
           {pending ? 'Création' : 'Créer mon compte'}
         </Button>

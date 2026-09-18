@@ -19,7 +19,7 @@ test.describe('Gestion du stock', () => {
     await page.goto('/ingredients/nouveau');
     await page.getByLabel('Nom').fill(soonName);
     await page.getByLabel('Catégorie').selectOption('FRAIS');
-    await page.getByLabel('Unité par défaut').fill('pot');
+    await page.getByLabel('Unité par défaut').selectOption('pot');
     await page.getByLabel('Durée de conservation').selectOption('COURTE');
     await page.getByLabel("Source d'achat").selectOption('MARCHE');
     await page.getByRole('button', { name: 'Ajouter' }).click();
@@ -28,7 +28,7 @@ test.describe('Gestion du stock', () => {
     await page.goto('/ingredients/nouveau');
     await page.getByLabel('Nom').fill(laterName);
     await page.getByLabel('Catégorie').selectOption('EPICERIE');
-    await page.getByLabel('Unité par défaut').fill('kg');
+    await page.getByLabel('Unité par défaut').selectOption('kg');
     await page.getByLabel('Durée de conservation').selectOption('LONGUE');
     await page.getByLabel("Source d'achat").selectOption('CARREFOUR');
     await page.getByRole('button', { name: 'Ajouter' }).click();

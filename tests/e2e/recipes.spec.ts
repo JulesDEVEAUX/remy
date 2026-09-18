@@ -19,7 +19,7 @@ test.describe('CRUD recettes', () => {
       await page.goto('/ingredients/nouveau');
       await page.getByLabel('Nom').fill(ingredientName);
       await page.getByLabel('Catégorie').selectOption('EPICERIE');
-      await page.getByLabel('Unité par défaut').fill('g');
+      await page.getByLabel('Unité par défaut').selectOption('g');
       await page.getByLabel('Durée de conservation').selectOption('LONGUE');
       await page.getByLabel("Source d'achat").selectOption('CARREFOUR');
       await page.getByRole('button', { name: 'Ajouter' }).click();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validateIngredientInput, type IngredientFormValues } from '@/lib/ingredients/validation';
+import { UNIT_OPTIONS } from '@/lib/ingredients/units';
 
 const validValues: IngredientFormValues = {
   name: 'Farine T55',
@@ -61,11 +62,18 @@ describe('validateIngredientInput', () => {
     }
   });
 
-  it('rejects a default unit longer than 20 characters', () => {
-    const result = validateIngredientInput({ ...validValues, defaultUnit: 'a'.repeat(21) });
+  it('rejects a default unit outside the fixed list', () => {
+    const result = validateIngredientInput({ ...validValues, defaultUnit: 'litres' });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errors.defaultUnit).toBeDefined();
+    }
+  });
+
+  it('accepts every unit option of the fixed list', () => {
+    for (const option of UNIT_OPTIONS) {
+      const result = validateIngredientInput({ ...validValues, defaultUnit: option.value });
+      expect(result.ok).toBe(true);
     }
   });
 

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { Button, SelectField, TextField } from '@/components/ui';
+import { UNIT_OPTIONS } from '@/lib/ingredients/units';
 import type { IngredientFormValues } from '@/lib/ingredients/validation';
 import type { IngredientActionState } from './actions';
 
@@ -41,6 +42,14 @@ export function IngredientForm({
   const values = state?.values ?? defaultValues;
   const errors = state?.errors;
 
+  // Un ingrédient existant peut porter une unité saisie avant l'introduction de
+  // cette liste fermée (cf. issue #28) : on l'ajoute en option supplémentaire
+  // plutôt que de la faire disparaître silencieusement du formulaire d'édition.
+  const unitOptions =
+    values?.defaultUnit && !UNIT_OPTIONS.some((option) => option.value === values.defaultUnit)
+      ? [...UNIT_OPTIONS, { value: values.defaultUnit, label: values.defaultUnit }]
+      : UNIT_OPTIONS;
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
@@ -69,15 +78,22 @@ export function IngredientForm({
           </option>
         ))}
       </SelectField>
-      <TextField
+      <SelectField
         label="Unité par défaut"
         name="defaultUnit"
         required
-        maxLength={20}
-        defaultValue={values?.defaultUnit}
+        defaultValue={values?.defaultUnit ?? ''}
         error={errors?.defaultUnit}
-        placeholder="g, L, pièce…"
-      />
+      >
+        <option value="" disabled>
+          Choisir…
+        </option>
+        {unitOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </SelectField>
       <SelectField
         label="Durée de conservation"
         name="conservation"

@@ -115,4 +115,37 @@ test.describe('Liste de courses', () => {
     const viewportWidth = await page.evaluate(() => window.innerWidth);
     expect(scrollWidth).toBeLessThanOrEqual(viewportWidth);
   });
+
+  test('supprimer un item de la liste sans le cocher (issue #68)', async ({ page }) => {
+    const email = 'e2e-courses-delete-item@remy.test';
+    await ensureTestUserId(email);
+    await signInAsTestUser(page, email);
+
+    const runId = Date.now();
+    const ingredientName = `Article suppression test ${runId}`;
+
+    await page.goto('/ingredients/nouveau');
+    await page.getByLabel('Nom').fill(ingredientName);
+    await page.getByLabel('Catégorie').selectOption('EPICERIE');
+    await page.getByLabel('Unité par défaut').selectOption('g');
+    await page.getByLabel('Durée de conservation').selectOption('LONGUE');
+    await page.getByLabel("Source d'achat").selectOption('MARCHE');
+    await page.getByRole('button', { name: 'Ajouter' }).click();
+    await expect(page).toHaveURL(/\/ingredients$/);
+
+    await page.goto('/courses');
+    const itemForm = page.locator('form').filter({ has: page.getByLabel('Quantité') });
+    await itemForm.getByLabel('Ingrédient').selectOption({ label: ingredientName });
+    await itemForm.getByLabel('Quantité').fill('500');
+    await itemForm.getByLabel('Unité', { exact: true }).fill('g');
+    await itemForm.getByRole('button', { name: 'Ajouter' }).click();
+
+    const itemRow = page.getByRole('button', { name: new RegExp(ingredientName) });
+    await expect(itemRow).toBeVisible();
+    await expect(itemRow).toHaveAttribute('aria-pressed', 'false');
+
+    await page.getByRole('button', { name: `Supprimer ${ingredientName}` }).click();
+
+    await expect(itemRow).not.toBeVisible();
+  });
 });

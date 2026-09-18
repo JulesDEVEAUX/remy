@@ -181,6 +181,13 @@ export async function clearCheckedItemsAction(shoppingListId: string) {
   revalidatePath('/courses');
 }
 
+/** Supprime un item de courses individuellement (cf. issue #68), qu'il soit coché ou non. */
+export async function deleteShoppingItemAction(id: string) {
+  const household = await getCurrentHousehold();
+  await prisma.shoppingListItem.deleteMany({ where: { id, householdId: household.id } });
+  revalidatePath('/courses');
+}
+
 export type CreateShoppingListState = { error: string; value: string } | undefined;
 
 export async function createShoppingListAction(

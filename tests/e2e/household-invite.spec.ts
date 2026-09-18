@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { ensureTestUserId, signInAsTestUser } from './support/auth';
-import { ensureHouseholdHasPerson } from './support/household';
+import { ensureHouseholdHasPerson, getInviteCode } from './support/household';
 
 test.describe('Inviter un compte sur son foyer', () => {
   test.skip(
@@ -19,18 +19,7 @@ test.describe('Inviter un compte sur son foyer', () => {
     await signInAsTestUser(page, hostEmail);
     await page.goto('/parametres');
 
-    const codeLocator = page.getByText(/^[A-Z0-9]{8}$/);
-    // Sur un foyer déjà invité par un run précédent, un code est déjà affiché avant même
-    // le clic : "toBeVisible" seul ne suffit pas à attendre la régénération (l'élément est
-    // déjà visible, il ne fait que changer de texte) — on attend explicitement que le texte
-    // diffère de la valeur précédente plutôt que sa simple présence.
-    const previousCode = (await codeLocator.count()) > 0 ? await codeLocator.innerText() : null;
-    await page.getByRole('button', { name: /code d'invitation|Régénérer/ }).click();
-    await expect(codeLocator).toBeVisible();
-    if (previousCode) {
-      await expect(codeLocator).not.toHaveText(previousCode);
-    }
-    const inviteCode = await codeLocator.innerText();
+    const inviteCode = await getInviteCode(page);
 
     const runId = Date.now();
     const guestEmail = `e2e-invite-guest-${runId}@remy.test`;

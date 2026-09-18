@@ -9,9 +9,11 @@ type IngredientOption = { id: string; name: string };
 export function ShoppingItemForm({
   action,
   ingredientOptions,
+  shoppingListId,
 }: {
   action: (state: ShoppingItemActionState, formData: FormData) => Promise<ShoppingItemActionState>;
   ingredientOptions: IngredientOption[];
+  shoppingListId: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const values = state?.values;
@@ -27,6 +29,7 @@ export function ShoppingItemForm({
 
   return (
     <form action={formAction} className="mb-8 flex flex-col gap-3 rounded-lg bg-sand p-4 dark:bg-clay-800">
+      <input type="hidden" name="shoppingListId" value={shoppingListId} />
       <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-clay-700 dark:text-clay-400">
         Ajouter un article
       </span>

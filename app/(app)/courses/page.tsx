@@ -53,7 +53,7 @@ export default async function CoursesPage({
     }),
     prisma.ingredient.findMany({
       where: ingredientCatalogWhere(household.id),
-      select: { id: true, name: true },
+      select: { id: true, name: true, defaultUnit: true },
       orderBy: { name: 'asc' },
     }),
     prisma.householdNeed.count({ where: { householdId: household.id } }),

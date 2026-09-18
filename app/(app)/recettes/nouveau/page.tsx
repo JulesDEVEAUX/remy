@@ -24,7 +24,11 @@ export default async function NewRecipePage({
       <RecipeForm
         action={createRecipeAction}
         submitLabel="Ajouter"
-        ingredientOptions={ingredients.map((ingredient) => ({ id: ingredient.id, name: ingredient.name }))}
+        ingredientOptions={ingredients.map((ingredient) => ({
+          id: ingredient.id,
+          name: ingredient.name,
+          defaultUnit: ingredient.defaultUnit,
+        }))}
         redirectTo={backHref}
       />
     </main>

@@ -29,7 +29,12 @@ export default async function NewStockPage() {
         <StockForm
           action={createStockAction}
           submitLabel="Ajouter"
-          ingredientOptions={ingredients.map((ingredient) => ({ id: ingredient.id, name: ingredient.name }))}
+          ingredientOptions={ingredients.map((ingredient) => ({
+            id: ingredient.id,
+            name: ingredient.name,
+            defaultUnit: ingredient.defaultUnit,
+            conservation: ingredient.conservation,
+          }))}
         />
       )}
     </main>

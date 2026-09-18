@@ -14,9 +14,11 @@ Next.js (App Router) + Prisma + Supabase (Postgres/Auth/Storage) + Tailwind, mob
 - Authentification Supabase (email + code à 6 chiffres, `/login` et `/signup`) et onboarding
   foyer (`/onboarding` : nom du foyer + premiers mangeurs, déclenché automatiquement au
   premier accès)
-- CRUD ingrédients livré (`/ingredients`)
+- CRUD ingrédients livré (`/ingredients`) : chaque produit porte un emoji choisi ou tiré au
+  hasard à la création
 - CRUD recettes livré (`/recettes`) : composition d'ingrédients existants (quantité + unité),
-  saisons, tags, temps de préparation, lien source, commentaires et historique de réalisation
+  saisons, tags, temps de préparation, lien source, commentaires et historique de réalisation,
+  emoji choisi ou tiré au hasard
 - Gestion du stock livrée (`/stock`) : ajout/ajustement/retrait scopés au foyer, toujours
   rattachés à un ingrédient existant, liste triée par urgence de péremption (date estimée
   automatiquement si non saisie)

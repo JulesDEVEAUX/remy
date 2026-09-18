@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Button, Card, Icon, ICONS, PageHeader, Tag } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
 import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
+import { recipeReadWhere } from '@/lib/recipes/catalog';
 import { formatLastMade } from '@/lib/recipes/history';
 import { toRecipeFormValues } from '@/lib/recipes/mapping';
 import { prisma } from '@/lib/prisma';
@@ -24,13 +25,16 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
   const household = await getCurrentHousehold();
   const [recipe, ingredients] = await Promise.all([
     prisma.recipe.findFirst({
-      where: { id, OR: [{ householdId: household.id }, { isPrivate: false }] },
+      where: recipeReadWhere(id, household.id, household.isTestHousehold),
       include: {
         ingredients: { include: { ingredient: true } },
         comments: { orderBy: { createdAt: 'desc' } },
       },
     }),
-    prisma.ingredient.findMany({ where: ingredientCatalogWhere(household.id), orderBy: { name: 'asc' } }),
+    prisma.ingredient.findMany({
+      where: ingredientCatalogWhere(household.id, household.isTestHousehold),
+      orderBy: { name: 'asc' },
+    }),
   ]);
 
   if (!recipe) {

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
 import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { safeRedirectTarget } from '@/lib/navigation';
+import { otherHouseholdsPublicRecipesWhere } from '@/lib/recipes/catalog';
 import { markAsMadeToday } from '@/lib/recipes/history';
 import { parseRecipeFormData } from '@/lib/recipes/mapping';
 import {
@@ -18,9 +19,9 @@ import { prisma } from '@/lib/prisma';
 
 export type RecipeActionState = { errors: RecipeFieldErrors; values: RecipeFormValues } | undefined;
 
-async function loadValidIngredientIds(householdId: string) {
+async function loadValidIngredientIds(householdId: string, isTestHousehold: boolean) {
   const ingredients = await prisma.ingredient.findMany({
-    where: ingredientCatalogWhere(householdId),
+    where: ingredientCatalogWhere(householdId, isTestHousehold),
     select: { id: true },
   });
   return new Set(ingredients.map((ingredient) => ingredient.id));
@@ -31,7 +32,7 @@ export async function createRecipeAction(
   formData: FormData,
 ): Promise<RecipeActionState> {
   const household = await getCurrentHousehold();
-  const validIngredientIds = await loadValidIngredientIds(household.id);
+  const validIngredientIds = await loadValidIngredientIds(household.id, household.isTestHousehold);
   const values = parseRecipeFormData(formData);
   const result = validateRecipeInput(values, validIngredientIds);
   if (!result.ok) {
@@ -69,7 +70,7 @@ export async function updateRecipeAction(
   formData: FormData,
 ): Promise<RecipeActionState> {
   const household = await getCurrentHousehold();
-  const validIngredientIds = await loadValidIngredientIds(household.id);
+  const validIngredientIds = await loadValidIngredientIds(household.id, household.isTestHousehold);
   const values = parseRecipeFormData(formData);
   const result = validateRecipeInput(values, validIngredientIds);
   if (!result.ok) {
@@ -171,14 +172,14 @@ export async function updatePersonalNoteAction(
 export async function cloneRecipeAction(sourceId: string) {
   const household = await getCurrentHousehold();
   const source = await prisma.recipe.findFirst({
-    where: { id: sourceId, isPrivate: false, householdId: { not: household.id } },
+    where: { id: sourceId, ...otherHouseholdsPublicRecipesWhere(household.id, household.isTestHousehold) },
     include: { ingredients: true },
   });
   if (!source) {
     redirect('/recettes');
   }
 
-  const visibleIngredientIds = await loadValidIngredientIds(household.id);
+  const visibleIngredientIds = await loadValidIngredientIds(household.id, household.isTestHousehold);
   const clonableIngredients = source.ingredients.filter((ingredient) =>
     visibleIngredientIds.has(ingredient.ingredientId),
   );

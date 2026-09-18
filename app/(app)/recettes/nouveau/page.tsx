@@ -13,7 +13,7 @@ export default async function NewRecipePage({
 }) {
   const [household, { redirectTo }] = await Promise.all([getCurrentHousehold(), searchParams]);
   const ingredients = await prisma.ingredient.findMany({
-    where: ingredientCatalogWhere(household.id),
+    where: ingredientCatalogWhere(household.id, household.isTestHousehold),
     orderBy: { name: 'asc' },
   });
   const backHref = safeRedirectTarget(redirectTo, '/recettes');

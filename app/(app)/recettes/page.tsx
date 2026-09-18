@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button, EmptyState, ICONS, Icon, ListRow, PageHeader, Tag } from '@/components/ui';
 import { getCurrentHousehold } from '@/lib/household';
+import { otherHouseholdsPublicRecipesWhere } from '@/lib/recipes/catalog';
 import { toRecipeViewModel } from '@/lib/recipes/mapping';
 import { prisma } from '@/lib/prisma';
 
@@ -13,7 +14,7 @@ export default async function RecettesPage() {
       orderBy: { name: 'asc' },
     }),
     prisma.recipe.findMany({
-      where: { householdId: { not: household.id }, isPrivate: false },
+      where: otherHouseholdsPublicRecipesWhere(household.id, household.isTestHousehold),
       include: { ingredients: true },
       orderBy: { name: 'asc' },
     }),

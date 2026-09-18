@@ -52,7 +52,7 @@ export default async function CoursesPage({
       select: { recipeId: true, isBatch: true, recipe: { select: { name: true } } },
     }),
     prisma.ingredient.findMany({
-      where: ingredientCatalogWhere(household.id),
+      where: ingredientCatalogWhere(household.id, household.isTestHousehold),
       select: { id: true, name: true, defaultUnit: true },
       orderBy: { name: 'asc' },
     }),

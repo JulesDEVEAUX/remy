@@ -22,7 +22,7 @@ export default async function CoursesPage() {
     }),
     prisma.ingredient.findMany({
       where: { householdId: household.id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, defaultUnit: true },
       orderBy: { name: 'asc' },
     }),
   ]);

@@ -52,7 +52,11 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
         action={updateRecipeAction.bind(null, id)}
         defaultValues={toRecipeFormValues(recipe)}
         submitLabel="Enregistrer"
-        ingredientOptions={ingredients.map((ingredient) => ({ id: ingredient.id, name: ingredient.name }))}
+        ingredientOptions={ingredients.map((ingredient) => ({
+          id: ingredient.id,
+          name: ingredient.name,
+          defaultUnit: ingredient.defaultUnit,
+        }))}
       />
 
       <section className="mt-6 flex flex-col gap-3">

@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -33,4 +35,22 @@ export async function ensureHouseholdHasPerson(ownerUserId: string | undefined) 
   if (personCount === 0) {
     await prisma.person.create({ data: { householdId: household.id, name: 'Test' } });
   }
+}
+
+/**
+ * Récupère le code d'invitation affiché dans Paramètres, en le (re)générant si besoin.
+ * Sur un foyer déjà invité par un run précédent, un code est déjà affiché avant même le
+ * clic : "toBeVisible" seul ne suffit pas à attendre la régénération (l'élément est déjà
+ * visible, il ne fait que changer de texte) — on attend explicitement que le texte diffère
+ * de la valeur précédente plutôt que sa simple présence.
+ */
+export async function getInviteCode(page: Page) {
+  const codeLocator = page.getByText(/^[A-Z0-9]{8}$/);
+  const previousCode = (await codeLocator.count()) > 0 ? await codeLocator.innerText() : null;
+  await page.getByRole('button', { name: /code d'invitation|Régénérer/ }).click();
+  await expect(codeLocator).toBeVisible();
+  if (previousCode) {
+    await expect(codeLocator).not.toHaveText(previousCode);
+  }
+  return codeLocator.innerText();
 }

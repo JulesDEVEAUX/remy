@@ -105,7 +105,78 @@ par issue, mergées sur `main` après revue) :
   redirect — réutilisable pour tout futur flux « créer X depuis Y »
 
 Les issues #31, #30, #28, #25 (relabellisées `enhancement` en cours de route) sont
-restées hors périmètre de ce lot — voir skill `fix-issues` mis à jour ci-dessous.
+restées hors périmètre de ce lot — voir skill `fix-issues` mis à jour ci-dessous. Traitées
+dans le lot suivant, voir section « Lot d'enhancements ».
+
+## Lot d'enhancements GitHub (issues #41, #40, #31, #30, #28, #25) — 18/09/2026
+
+Sept issues restantes traitées à la suite du lot de bugs ci-dessus, via le même skill
+`fix-issues` élargi (voir section CI/CD plus bas) : six `enhancement` + une relabellisée
+`invalid` (#56) — aucune n'était un vrai `bug`. Une branche + une PR par issue,
+**PR ouvertes, en attente de revue humaine** (pas encore mergées, contrairement au lot de
+bugs ci-dessus) :
+
+- **Besoins récurrents du foyer hors recettes** (#41, PR #59) : nouveau modèle
+  `HouseholdNeed` (ingrédient + consommation mensuelle), section « Besoins récurrents »
+  dans Paramètres. Converti en équivalent hebdomadaire (`lib/household-needs/quantity.ts`,
+  prorata sur 365,25/12 jours) et intégré à `generateShoppingListAction` aux côtés des
+  recettes planifiées
+- **Plusieurs listes de courses en parallèle** (#40, PR #60) : nouveau modèle
+  `ShoppingList` (nommée, scopée au foyer) ; `ShoppingListItem.shoppingListId` devient
+  obligatoire, migration avec backfill (une liste « Courses » par défaut créée pour les
+  items déjà en base). Sélecteur de liste sur `/courses` (pastilles + création),
+  suppression possible sauf s'il ne reste qu'une liste
+- **Catalogue ingrédients/recettes partagé entre foyers** (#31, PR #61) :
+  `Ingredient.isPrivate` / `Recipe.isPrivate` (défaut `false` = public).
+  `lib/ingredients/catalog.ts` centralise le filtre « mon foyer + tout ce qui est
+  public », réutilisé pour toute sélection d'ingrédient (stock, recette, courses) —
+  `/ingredients` (page de gestion CRUD) reste filtrée au foyer seul, seul le propriétaire
+  édite/supprime. Une recette publique d'un autre foyer s'affiche en lecture seule avec
+  un bouton « Ajouter à mon foyer » qui la **clone** plutôt que d'y référencer
+  directement, pour ne jamais faire fuiter commentaires/note perso/historique de
+  réalisation entre foyers. Nouveau composant transverse `CheckboxField`
+  (`components/ui/FormField.tsx`), ajouté à la règle 2 de `CLAUDE.md`
+- **Champs pré-remplis** (#30, PR #62) : choisir un ingrédient suggère désormais son
+  unité par défaut dans le stock, la composition d'une recette et l'ajout manuel en
+  courses. Pour le stock spécifiquement, la date de péremption estimée
+  (`lib/stock/expiry.ts`, déjà existant comme filet de sécurité serveur) devient visible
+  et éditable dans le formulaire au lieu d'un calcul silencieux uniquement si le champ
+  est laissé vide
+- **Liste déroulante d'unités** (#28, PR #63) : `lib/ingredients/units.ts` fige la liste
+  fermée des unités proposées à la création d'un produit (notation scientifique
+  respectée — `mL`/`cL`/`L`, jamais `ml`/`l`). Volontairement limité au champ
+  `Ingredient.defaultUnit` : les champs unité libres ailleurs (ligne de recette, stock,
+  courses) restent en texte libre, une ligne pouvant légitimement demander une unité
+  hors du défaut du produit
+- **Inviter un compte sur son foyer** (#25, PR #64) : `Household.inviteCode` (généré
+  depuis Paramètres, partagé manuellement — pas d'email, cf. limites du mailer Supabase
+  ci-dessous) + nouveau modèle `HouseholdMember`. Saisi en champ optionnel à
+  l'inscription (`/signup`) : rattache le nouveau compte au foyer invité au lieu de lui
+  en créer un. `getCurrentHousehold()` résout désormais dans l'ordre propriétaire →
+  membre invité → création (coût de lecture supplémentaire nul sur le chemin le plus
+  courant). `Person.linkedUserId` + case « c'est moi » dans Paramètres > Membres, un
+  seul mangeur par compte
+- **Bases de données de test** (#56, label `invalid`) : investigation seule, pas de PR.
+  `.github/workflows/ci.yml` ne consomme aucun jeu de données de test — les tests
+  unitaires utilisent des factories locales par fichier (mises à jour au fil de ce lot
+  pour les nouveaux champs de schéma), `prisma/seed.mjs` (dev local uniquement, jamais
+  exécuté en CI) reste cohérent avec le schéma actuel. Rien à corriger ; laissée ouverte
+  à la demande de l'utilisateur
+
+Travail réalisé dans un `git worktree` dédié (`remy-agent-fixissues`), conformément à la
+recommandation plus bas sur le travail agent en parallèle. Les PR #59/#60/#61 modifient
+toutes `app/(app)/courses/actions.ts` et `page.tsx` (besoins récurrents, listes
+multiples, catalogue partagé) — conflit de merge probable entre elles, à résoudre en
+conservant les trois apports plutôt qu'en écrasant l'un des deux.
+
+Chaque migration de ce lot a été écrite et appliquée à la main (SQL direct via un script
+`pg` temporaire, puis `prisma migrate resolve --applied`) plutôt que via
+`prisma migrate dev`, qui refusait de générer un diff propre : la base de dev partagée
+contenait déjà les tables des branches sœurs non mergées (ex. `HouseholdNeed` de la
+PR #59 visible depuis la branche de la PR #60, alors fraîchement créée depuis `main`) —
+un cas non couvert par le précédent similaire de l'intégration Tier 1 ci-dessous, propre
+à plusieurs PR de schéma ouvertes en parallèle sans jamais avoir mergé entre elles. À
+surveiller pour tout futur lot d'issues touchant le schéma sur cette base partagée.
 
 ## Design / interface — état au 17/09/2026
 
@@ -233,7 +304,8 @@ ouvertes).
   naturelle possible en réutilisant le lien magique (déjà corrigé côté redirection prod).
   Un utilisateur = un foyer pour l'instant (`Household.ownerUserId`, créé au premier
   accès) ; l'ouverture à plusieurs membres par foyer reste à faire, sans refonte de
-  schéma attendue
+  schéma attendue — traitée dans la PR #64 (issue #25, voir section « Lot
+  d'enhancements » plus haut), non mergée à date de cette note
 - Pipeline CI/CD : `nightly-regression.yml` ne pouvait en réalité jamais s'exécuter avec
   succès avant le 17/09/2026 (conflit de version pnpm, navigateurs Playwright non
   installés, flag `--run` invalide pour Playwright) — corrigé au passage dans la PR #1,

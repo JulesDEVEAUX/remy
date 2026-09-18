@@ -178,6 +178,62 @@ un cas non couvert par le précédent similaire de l'intégration Tier 1 ci-dess
 à plusieurs PR de schéma ouvertes en parallèle sans jamais avoir mergé entre elles. À
 surveiller pour tout futur lot d'issues touchant le schéma sur cette base partagée.
 
+## Lot bug+enhancement (issues #70, #66, #73) — 18/09/2026
+
+Trois issues traitées via le skill `fix-issues`, une branche + une PR par issue, **mergées
+sur `main` sur demande explicite de l'utilisateur pour ce lot précis** (dérogation à la
+règle par défaut « l'utilisateur relit et merge ») :
+
+- **Bug d'interface dans les settings** (#70, PR #74) : la ligne « Besoins récurrents »
+  (Paramètres) et les lignes de la liste de courses (`CheckRow`) débordaient à droite dès
+  que le nom du produit ou l'unité (jusqu'à 20 caractères, texte libre) étaient longs — ni
+  le libellé ni la quantité n'avaient de contrainte de largeur dans la ligne flex. Ajout de
+  `min-w-0 flex-1 truncate` sur le libellé et `max-w-[40%] shrink-0 truncate` sur la
+  quantité
+- **Je vois toutes les recettes de tests unitaires** (#66, PR #75) : `Ingredient`/`Recipe`
+  sont publics par défaut (`isPrivate=false`, issue #31) et donc visibles dans le catalogue
+  partagé de tout foyer — y compris ceux créés par les comptes e2e (`@remy.test`), qui
+  polluaient le catalogue de chaque foyer réel. Nouveau champ `Household.isTestHousehold`
+  (posé à la création selon le domaine de l'email, `lib/testing.ts`) exclu du catalogue
+  partagé **uniquement pour un foyer réel** — un foyer de test continue de voir le
+  catalogue public d'un autre foyer de test, condition nécessaire pour que
+  `tests/e2e/ingredient-recipe-sharing.spec.ts` reste utilisable. Backfill des 28 foyers de
+  test déjà en base appliqué à la main (jointure `auth.users`, hors migration versionnée
+  car absente du Postgres nu de `ci.yml`). `prisma/seed.mjs` (dev local uniquement) enrichi
+  d'une sélection plus large d'ingrédients/recettes par défaut, en remplacement du contenu
+  de test qui polluait jusqu'ici le catalogue partagé
+- **Emoji d'icône produit/recette** (#73, PR #76) : `Ingredient.emoji` / `Recipe.emoji`,
+  choisi librement (nouveau composant transverse `EmojiField`, clavier emoji natif du
+  téléphone) ou tiré au hasard (`lib/emoji.ts`) si laissé vide, avec un bouton pour
+  retirer un tirage. `isSingleEmoji` valide un unique glyphe (`Intl.Segmenter` +
+  `\p{Extended_Pictographic}`) plutôt que du texte brut ou plusieurs emojis. Le formulaire
+  recette allongé par ce champ a rendu fragile un clic forcé existant dans
+  `tests/e2e/recipes.spec.ts` (case saison `peer sr-only` cliquée par coordonnées, qui
+  pouvait atterrir ailleurs une fois la page plus longue) — corrigé en cliquant le
+  `<label>` visible plutôt que les coordonnées de l'input invisible, plus robuste aux
+  futurs ajouts de champs
+
+Le critère d'exclusion des régressions e2e auto-générées du skill (description de label)
+s'est révélé trop large en pratique : le label `bug` du repo n'a qu'une seule instance,
+et sa description globale (écrasée par le workflow nocturne) matchait aussi bien #70 et
+#66, qui sont de vrais bugs signalés manuellement. Décision utilisateur du 18/09/2026 :
+se fier au motif de titre « Régression e2e nocturne — » comme signal fiable pour ces
+trois issues plutôt qu'à la description du label — traiter #70/#66 normalement. À
+corriger dans `.claude/commands/fix-issues.md` si le label `bug` continue de porter cette
+description (idéalement un label dédié pour les régressions auto, distinct de `bug`)
+
+Chaque worktree a été créé au moment de constater le risque de collision de branche dans
+le répertoire de travail principal (cf. note plus bas sur le travail agent en parallèle) —
+l'issue #70 a donc été traitée directement dans ce répertoire (checkout de branche, pas de
+worktree dédié), les issues #66 et #73 dans des worktrees dédiés
+(`remy-agent-issue66`, `remy-agent-issue73`). Aucune collision constatée cette fois, mais
+à traiter en worktree dédié dès la première issue à l'avenir. Un serveur `next dev`
+partagé tournant depuis une autre session a été rencontré avec un client Prisma
+désynchronisé du schéma courant (`prisma.householdMember` undefined) — confirme qu'un
+`pnpm dev`/`next build` lancé pour vérifier localement doit utiliser un `PORT` dédié dans
+un worktree séparé plutôt que de compter sur `reuseExistingServer`, qui se rattache au
+premier serveur trouvé sur le port par défaut sans égard à la branche qui l'a démarré.
+
 ## Design / interface — état au 17/09/2026
 
 Le système de design « Plan de travail » (`docs/identite-visuelle.md`) est appliqué

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { validateIngredientInput, type IngredientFormValues } from '@/lib/ingredients/validation';
+import { SUBCATEGORY_OPTIONS } from '@/lib/ingredients/subcategories';
 import { UNIT_OPTIONS } from '@/lib/ingredients/units';
 
 const validValues: IngredientFormValues = {
   name: 'Farine T55',
   category: 'EPICERIE',
+  subcategory: '',
   defaultUnit: 'g',
   conservation: 'LONGUE',
   defaultSource: 'CARREFOUR',
@@ -25,6 +27,7 @@ describe('validateIngredientInput', () => {
       data: {
         name: 'Farine T55',
         category: 'EPICERIE',
+        subcategory: null,
         defaultUnit: 'g',
         conservation: 'LONGUE',
         defaultSource: 'CARREFOUR',
@@ -36,7 +39,7 @@ describe('validateIngredientInput', () => {
 
   it('carries a checked isPrivate through unchanged', () => {
     const result = validateIngredientInput({ ...validValues, isPrivate: true });
-    expect(result).toEqual({ ok: true, data: { ...validValues, isPrivate: true } });
+    expect(result).toEqual({ ok: true, data: { ...validValues, subcategory: null, isPrivate: true } });
   });
 
   it('rejects an empty name', () => {
@@ -118,10 +121,51 @@ describe('validateIngredientInput', () => {
     }
   });
 
+  it('leaves subcategory null when left blank — it stays optional (cf. issue #67)', () => {
+    const result = validateIngredientInput({ ...validValues, subcategory: '  ' });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.subcategory).toBeNull();
+    }
+  });
+
+  it('accepts every subcategory option of the chosen category', () => {
+    for (const category of Object.keys(SUBCATEGORY_OPTIONS) as (keyof typeof SUBCATEGORY_OPTIONS)[]) {
+      for (const option of SUBCATEGORY_OPTIONS[category]) {
+        const result = validateIngredientInput({ ...validValues, category, subcategory: option.value });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          expect(result.data.subcategory).toBe(option.value);
+        }
+      }
+    }
+  });
+
+  it('rejects a subcategory that does not belong to the chosen category', () => {
+    const result = validateIngredientInput({
+      ...validValues,
+      category: 'EPICERIE',
+      subcategory: 'FRUITS_LEGUMES',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.subcategory).toBeDefined();
+    }
+  });
+
+  it('rejects an unknown subcategory value', () => {
+    const result = validateIngredientInput({ ...validValues, subcategory: 'JOUETS_DIVERS' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.subcategory).toBeDefined();
+    }
+  });
+
   it('reports every invalid field at once', () => {
     const result = validateIngredientInput({
       name: '',
       category: '',
+      subcategory: '',
       defaultUnit: '',
       conservation: '',
       defaultSource: '',

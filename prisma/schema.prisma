@@ -122,6 +122,11 @@ model Ingredient {
   household     Household          @relation(fields: [householdId], references: [id])
   name          String
   category      IngredientCategory
+  // Sous-catégorie facultative, dépendante de `category` (cf. lib/ingredients/subcategories.ts,
+  // issue #67) — liste fermée par catégorie plutôt qu'un enum Prisma global, même
+  // approche que `defaultUnit` (issue #28). Nullable : les ingrédients existants
+  // avant cette migration n'en ont pas.
+  subcategory   String?
   defaultUnit   String
   conservation  ConservationDuree
   defaultSource SourceAchat

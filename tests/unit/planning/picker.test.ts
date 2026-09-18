@@ -19,6 +19,7 @@ function makeIngredient(overrides: Partial<Ingredient> = {}): Ingredient {
     householdId: 'household_1',
     name: 'Courgettes',
     category: IngredientCategory.FRAIS,
+    subcategory: null,
     defaultUnit: 'g',
     conservation: ConservationDuree.LONGUE,
     defaultSource: SourceAchat.MARCHE,

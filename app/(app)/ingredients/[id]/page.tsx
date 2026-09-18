@@ -24,6 +24,7 @@ export default async function EditIngredientPage({ params }: { params: Promise<{
         defaultValues={{
           name: ingredient.name,
           category: ingredient.category,
+          subcategory: ingredient.subcategory ?? '',
           defaultUnit: ingredient.defaultUnit,
           conservation: ingredient.conservation,
           defaultSource: ingredient.defaultSource,

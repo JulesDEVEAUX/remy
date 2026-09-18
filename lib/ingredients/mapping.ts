@@ -1,5 +1,6 @@
 import { ConservationDuree, IngredientCategory, SourceAchat, type Ingredient } from '@prisma/client';
 import type { IconName } from '@/components/ui';
+import { subcategoryLabel } from './subcategories';
 import type { IngredientFormValues } from './validation';
 
 /** Extrait les champs bruts d'un <form> ingrédient — aucune validation ici. */
@@ -7,6 +8,7 @@ export function parseIngredientFormData(formData: FormData): IngredientFormValue
   return {
     name: String(formData.get('name') ?? ''),
     category: String(formData.get('category') ?? ''),
+    subcategory: String(formData.get('subcategory') ?? ''),
     defaultUnit: String(formData.get('defaultUnit') ?? ''),
     conservation: String(formData.get('conservation') ?? ''),
     defaultSource: String(formData.get('defaultSource') ?? ''),
@@ -49,6 +51,7 @@ export type IngredientViewModel = {
   category: IngredientCategory;
   categoryLabel: string;
   categoryIcon: IconName;
+  subcategoryLabel: string | null;
   defaultUnit: string;
   conservationLabel: string;
   sourceLabel: string;
@@ -64,6 +67,7 @@ export function toIngredientViewModel(ingredient: Ingredient): IngredientViewMod
     category: ingredient.category,
     categoryLabel: CATEGORY_LABELS[ingredient.category],
     categoryIcon: CATEGORY_ICONS[ingredient.category],
+    subcategoryLabel: ingredient.subcategory ? (subcategoryLabel(ingredient.subcategory) ?? null) : null,
     defaultUnit: ingredient.defaultUnit,
     conservationLabel: CONSERVATION_LABELS[ingredient.conservation],
     sourceLabel: SOURCE_LABELS[ingredient.defaultSource],

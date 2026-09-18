@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, CheckboxField, EmojiField, SelectField, TextField } from '@/components/ui';
+import { SUBCATEGORY_OPTIONS } from '@/lib/ingredients/subcategories';
 import { UNIT_OPTIONS } from '@/lib/ingredients/units';
 import type { IngredientFormValues } from '@/lib/ingredients/validation';
 import type { IngredientActionState } from './actions';
@@ -12,7 +13,7 @@ const CATEGORY_OPTIONS = [
   { value: 'MENAGER', label: 'Ménager' },
   { value: 'BEAUTE', label: 'Beauté' },
   { value: 'AUTRE', label: 'Autre' },
-];
+] as const;
 
 const CONSERVATION_OPTIONS = [
   { value: 'COURTE', label: 'Courte' },
@@ -45,6 +46,13 @@ export function IngredientForm({
   const values = state?.values ?? defaultValues;
   const errors = state?.errors;
   const [emoji, setEmoji] = useState(values?.emoji ?? randomEmoji ?? '');
+  const [category, setCategory] = useState(values?.category ?? '');
+  // Sous-catégorie dépendante de la catégorie choisie (cf. issue #67) : conservée
+  // seulement si elle appartient encore à la liste de la catégorie courante — un
+  // changement de catégorie vide silencieusement une sous-catégorie devenue invalide.
+  const subcategoryOptions =
+    category in SUBCATEGORY_OPTIONS ? SUBCATEGORY_OPTIONS[category as keyof typeof SUBCATEGORY_OPTIONS] : [];
+  const [subcategory, setSubcategory] = useState(values?.subcategory ?? '');
 
   // Un ingrédient existant peut porter une unité saisie avant l'introduction de
   // cette liste fermée (cf. issue #28) : on l'ajoute en option supplémentaire
@@ -71,7 +79,11 @@ export function IngredientForm({
         label="Catégorie"
         name="category"
         required
-        defaultValue={values?.category ?? ''}
+        value={category}
+        onChange={(event) => {
+          setCategory(event.target.value);
+          setSubcategory('');
+        }}
         error={errors?.category}
       >
         <option value="" disabled>
@@ -83,6 +95,22 @@ export function IngredientForm({
           </option>
         ))}
       </SelectField>
+      {subcategoryOptions.length > 0 && (
+        <SelectField
+          label="Sous-catégorie"
+          name="subcategory"
+          value={subcategory}
+          onChange={(event) => setSubcategory(event.target.value)}
+          error={errors?.subcategory}
+        >
+          <option value="">Aucune</option>
+          {subcategoryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </SelectField>
+      )}
       <SelectField
         label="Unité par défaut"
         name="defaultUnit"

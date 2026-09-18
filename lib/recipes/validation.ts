@@ -23,6 +23,7 @@ export type RecipeFormValues = {
   seasons: string[];
   tags: string;
   ingredientRows: RecipeIngredientRowInput[];
+  isPrivate: boolean;
 };
 
 export type RecipeIngredientInput = {
@@ -39,6 +40,7 @@ export type RecipeInput = {
   seasons: Saison[];
   tags: string[];
   ingredients: RecipeIngredientInput[];
+  isPrivate: boolean;
 };
 
 export type RecipeFieldErrors = Partial<
@@ -179,7 +181,7 @@ export function validateRecipeInput(
 
   return {
     ok: true,
-    data: { name, sourceUrl, instructions, prepMinutes, seasons, tags, ingredients },
+    data: { name, sourceUrl, instructions, prepMinutes, seasons, tags, ingredients, isPrivate: values.isPrivate },
   };
 }
 

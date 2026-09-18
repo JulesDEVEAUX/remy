@@ -95,6 +95,10 @@ model Ingredient {
   defaultUnit   String
   conservation  ConservationDuree
   defaultSource SourceAchat
+  // Public par défaut : visible et réutilisable par tous les foyers pour
+  // simplifier la saisie initiale (cf. issue #31). Seul le foyer propriétaire
+  // peut modifier/supprimer, public ou non (cf. lib/ingredients/catalog.ts).
+  isPrivate     Boolean            @default(false)
 
   // Nutrition : non prioritaire pour le MVP, champs nullable en attente (cf. PRD)
   kcalPer100g    Float?
@@ -125,6 +129,11 @@ model Recipe {
   tags         String[]
   personalNote String?
   lastMadeAt   DateTime?
+  // Publique par défaut : visible en lecture par tous les foyers, qui peuvent
+  // la cloner dans leur propre catalogue pour la planifier/personnaliser
+  // (cf. issue #31). Commentaires/note perso/historique restent toujours
+  // propres au foyer propriétaire.
+  isPrivate    Boolean            @default(false)
   ingredients  RecipeIngredient[]
   comments     RecipeComment[]
   mealPlans    MealPlan[]

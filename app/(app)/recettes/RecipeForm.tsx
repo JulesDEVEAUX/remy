@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { Button, Icon, IconButton, SelectField, Tag, TextField, TextareaField } from '@/components/ui';
+import { Button, CheckboxField, Icon, IconButton, SelectField, Tag, TextField, TextareaField } from '@/components/ui';
 import type { RecipeFormValues } from '@/lib/recipes/validation';
 import type { RecipeActionState } from './actions';
 
@@ -191,6 +191,8 @@ export function RecipeForm({
           </Button>
         )}
       </div>
+
+      <CheckboxField label="Recette privée" name="isPrivate" defaultChecked={values?.isPrivate} />
 
       <Button type="submit" block disabled={pending}>
         {pending ? 'Enregistrement' : submitLabel}

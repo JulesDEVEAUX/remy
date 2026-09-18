@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentHousehold } from '@/lib/household';
+import { ingredientCatalogWhere } from '@/lib/ingredients/catalog';
 import { safeRedirectTarget } from '@/lib/navigation';
 import { markAsMadeToday } from '@/lib/recipes/history';
 import { parseRecipeFormData } from '@/lib/recipes/mapping';
@@ -19,7 +20,7 @@ export type RecipeActionState = { errors: RecipeFieldErrors; values: RecipeFormV
 
 async function loadValidIngredientIds(householdId: string) {
   const ingredients = await prisma.ingredient.findMany({
-    where: { householdId },
+    where: ingredientCatalogWhere(householdId),
     select: { id: true },
   });
   return new Set(ingredients.map((ingredient) => ingredient.id));
@@ -46,6 +47,7 @@ export async function createRecipeAction(
       prepMinutes: result.data.prepMinutes,
       seasons: result.data.seasons,
       tags: result.data.tags,
+      isPrivate: result.data.isPrivate,
       ingredients: {
         create: result.data.ingredients.map((ingredient) => ({
           ingredientId: ingredient.ingredientId,
@@ -84,6 +86,7 @@ export async function updateRecipeAction(
         prepMinutes: result.data.prepMinutes,
         seasons: result.data.seasons,
         tags: result.data.tags,
+        isPrivate: result.data.isPrivate,
       },
     });
 
@@ -155,6 +158,53 @@ export async function updatePersonalNoteAction(
   });
   revalidatePath(`/recettes/${recipeId}`);
   return undefined;
+}
+
+/**
+ * Clone une recette publique d'un autre foyer dans le catalogue du foyer
+ * courant : historique, note perso et commentaires restent propres au foyer
+ * propriétaire d'origine, la copie démarre donc vierge sur ces champs.
+ * N'emporte que les RecipeIngredient dont l'ingrédient est visible du foyer
+ * courant (catalogue partagé, cf. lib/ingredients/catalog.ts) — un ingrédient
+ * resté privé chez le foyer d'origine est silencieusement omis de la copie.
+ */
+export async function cloneRecipeAction(sourceId: string) {
+  const household = await getCurrentHousehold();
+  const source = await prisma.recipe.findFirst({
+    where: { id: sourceId, isPrivate: false, householdId: { not: household.id } },
+    include: { ingredients: true },
+  });
+  if (!source) {
+    redirect('/recettes');
+  }
+
+  const visibleIngredientIds = await loadValidIngredientIds(household.id);
+  const clonableIngredients = source.ingredients.filter((ingredient) =>
+    visibleIngredientIds.has(ingredient.ingredientId),
+  );
+
+  const created = await prisma.recipe.create({
+    data: {
+      householdId: household.id,
+      name: source.name,
+      sourceUrl: source.sourceUrl,
+      instructions: source.instructions,
+      prepMinutes: source.prepMinutes,
+      seasons: source.seasons,
+      tags: source.tags,
+      isPrivate: false,
+      ingredients: {
+        create: clonableIngredients.map((ingredient) => ({
+          ingredientId: ingredient.ingredientId,
+          quantity: ingredient.quantity,
+          unit: ingredient.unit,
+        })),
+      },
+    },
+  });
+
+  revalidatePath('/recettes');
+  redirect(`/recettes/${created.id}`);
 }
 
 export async function markRecipeMadeAction(recipeId: string) {

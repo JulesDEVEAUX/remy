@@ -10,6 +10,7 @@ export function parseIngredientFormData(formData: FormData): IngredientFormValue
     defaultUnit: String(formData.get('defaultUnit') ?? ''),
     conservation: String(formData.get('conservation') ?? ''),
     defaultSource: String(formData.get('defaultSource') ?? ''),
+    isPrivate: formData.get('isPrivate') === 'on',
   };
 }
 
@@ -50,6 +51,7 @@ export type IngredientViewModel = {
   defaultUnit: string;
   conservationLabel: string;
   sourceLabel: string;
+  isPrivate: boolean;
 };
 
 /** Convertit un Ingredient Prisma en modèle d'affichage (libellés FR, icône). */
@@ -63,5 +65,6 @@ export function toIngredientViewModel(ingredient: Ingredient): IngredientViewMod
     defaultUnit: ingredient.defaultUnit,
     conservationLabel: CONSERVATION_LABELS[ingredient.conservation],
     sourceLabel: SOURCE_LABELS[ingredient.defaultSource],
+    isPrivate: ingredient.isPrivate,
   };
 }
